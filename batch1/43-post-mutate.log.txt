@@ -1,0 +1,137 @@
+==============================================================================
+代码变异测试（变异只发生在临时副本，正式文件全程只读）
+==============================================================================
+  正式文件：D:\WorkBuddy\2026-10-31-13-02-47\tmp\scanner.py
+    SHA-256（开始）：3800b63410f81afe154b0093ab2039d228569f5df1968a10c476fff4d784da29
+  正式文件：D:\WorkBuddy\2026-10-31-13-02-47\tmp\purge_flow_checks.py
+    SHA-256（开始）：fbc4a6d9401a1fba4e407f1f797746709ffa22a102035968840b40da42a5cdd3
+
+── 0. 原始代码必须通过全部入口 ────────────────────────────────────────
+  $ python verify_wiring.py      → exit=0
+  $ python probe_v628.py         → exit=0
+  $ python verify_purge_flow.py  → exit=0  none
+  （不在此处跑 verify_all：正式目录里的 verify_all 会调用本脚本，形成递归。
+   它的覆盖由下方每个变异副本里的 verify_all 承担，副本里没有本脚本。）
+  ✓ 原始代码通过（接线 + 探针 + purge 流程）
+
+── 1. 八个变异的结果 ────────────────────────────────────────────────────
+
+  M1｜主路径第二实参 types → None（函数体原样，接线被绕过）
+    变异位置：副本 scanner.py 第 131 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=1  verify_purge_flow=0
+    必须失败的入口：wiring, probe, all（实际：wiring=1、probe=1、all=1）
+    旧 A 段是否仍然全绿：True（True 表示只有新增段抓到它）
+    期望检查 id：['L2-arg-actual', 'L2-arg-dict', 'L2-arg-virtual'] → 命中：['L2-arg-actual', 'L2-arg-dict', 'L2-arg-virtual']
+    失败原因：['✗ [L2] 第二个实参是 dict（不是 None）   实际 NoneType']
+    变异语义：类型层被判据函数保留、但主路径不再传名册
+    失败段落分布：{'1b': 3}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M2｜删除类型层判据两行（if types ... != "virtual": continue）
+    变异位置：副本 scanner.py 第 77 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=1  verify_purge_flow=0
+    必须失败的入口：wiring, probe, all（实际：wiring=1、probe=1、all=1）
+    旧 A 段是否仍然全绿：True（True 表示只有新增段抓到它）
+    期望检查 id：['L1-semantics'] → 命中：['L1-semantics']
+    失败原因：["✗ [L1] `_pick_fts5()` 按两层判据裁决（合成输入：table/shadow/缺项→[]，virtual→['x']）   type='table'→['x']；type='shadow'→['x']；名册缺项→['x
+    变异语义：判定函数退回单层，类型为 table 的伪造声明会被收进 fts5
+    失败段落分布：{'1b': 1, '5': 3}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M3｜类型层前加 False and（判据成为死代码）
+    变异位置：副本 scanner.py 第 77 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=1  verify_purge_flow=0
+    必须失败的入口：wiring, probe, all（实际：wiring=1、probe=1、all=1）
+    旧 A 段是否仍然全绿：True（True 表示只有新增段抓到它）
+    期望检查 id：['L1-semantics'] → 命中：['L1-semantics']
+    失败原因：["✗ [L1] `_pick_fts5()` 按两层判据裁决（合成输入：table/shadow/缺项→[]，virtual→['x']）   type='table'→['x']；type='shadow'→['x']；名册缺项→['x
+    变异语义：判据文本还在，但条件永远为假
+    失败段落分布：{'1b': 1, '5': 3}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M4｜版本门恒返回 True（`return sqlite3.sqlite_version_info >= _TABLE_LIST_MIN` → `return True`）
+    变异位置：副本 scanner.py 第 58 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=1  verify_purge_flow=1
+    必须失败的入口：wiring, probe, all（实际：wiring=1、probe=1、all=1）
+    旧 A 段是否仍然全绿：True（True 表示只有新增段抓到它）
+    期望检查 id：['L4-gate-3.36.0', 'L4-nopragma-3.36.0'] → 命中：['L4-gate-3.36.0', 'L4-nopragma-3.36.0']
+    失败原因：['✗ [L4] `_table_list_usable()` 在模拟 3.36.0 下返回 False（版本门做常量比较，不是恒真/恒假）   实际 True（期望 False）']
+    变异语义：版本门失去比较语义：本机 3.53.1 上看不出任何异常，只有模拟 3.36.0 才暴露
+    失败段落分布：{'1b': 3, '1c': 3}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M5｜`_classify()` 恒返回空集合（扫描器必然返回 `{}`，与 purge 后同形）
+    变异位置：副本 scanner.py 第 111 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=None  verify_purge_flow=1
+    必须失败的入口：flow, wiring（实际：flow=1、wiring=1）
+    期望失败阶段：P1 → 实际 FAIL_PHASE=P1（一致）
+    失败原因：['✗ [L2] `_classify()` 执行期间调用 `_pick_fts5()` 恰好 1 次（主路径）   实际 0 次']
+    变异语义：旧断言 `scan() == {}` 无法区分『分类为空』与『真的删干净』
+    失败段落分布：{'1': 4, '1b': 12, '1c': 2, '2': 1, '4': 1, '6': 2}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M5b｜`scan()` 在两段循环之前 `return hits`（分类正常、扫描器空转）
+    变异位置：副本 scanner.py 第 159 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=None  verify_purge_flow=1
+    必须失败的入口：flow, wiring, probe（实际：flow=1、wiring=1、probe=1）
+    期望失败阶段：P2 → 实际 FAIL_PHASE=P2（一致）
+    对照锚：期望 fail → 实际 fail
+    失败原因：["✗ [L3] `scan()` 的 MATCH 只发给 `_classify()` 返回的 fts5 集合（各 1 次）   fts5=['term_fts_en', 'term_fts_zh']，MATCH 表=[]"]
+    变异语义：结构锚（P1）仍然过，只有行为锚（P2）与对照锚能抓 —— 这正是加三锚的理由
+    失败段落分布：{'1': 3, '1b': 4, '1c': 3, '2': 1}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M5c｜`_classify()` 在 `term_purge_log` 有行时返回空（模拟 purge 顺手删表/库损坏）
+    变异位置：副本 scanner.py 第 111 行（正式文件未改）
+    入口退出码：verify_wiring=0  probe_v628=1  verify_all=None  verify_purge_flow=1
+    必须失败的入口：flow（实际：flow=1）
+    期望失败阶段：P4 → 实际 FAIL_PHASE=P4（一致）
+    失败原因：["✗ [P4] P4-2 结构锚：purge 后分类 names 与 purge 前逐项相等（删的是数据，不是表）   前 20 张 / 后 0 张，差集=['ai_term_cache', 'domain', 'same_form_ac
+    变异语义：P4-① 的 `{}` 照样成立，只有结构锚（P4-②）能证明表结构没被 purge 动过
+    失败段落分布：{'1c': 3}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M6｜删掉 `hits.source = source`（source 在返回边界丢失）
+    变异位置：副本 scanner.py 第 157 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=None  verify_purge_flow=1
+    必须失败的入口：wiring, flow（实际：wiring=1、flow=1）
+    期望检查 id：['L5-main-scan', 'L5-suffix-scan'] → 命中：['L5-main-scan', 'L5-suffix-scan']
+    期望失败阶段：P6 → 实际 FAIL_PHASE=P6（一致）
+    失败原因：["✗ [L5] 主路径（本机版本）：`scan()` 返回对象的 `.source` 等于**同一次** `_classify()` 的返回值   type=ScanResult，hits.source=None，captured='ta
+    变异语义：回退到 P3-2 的原始缺陷：source 解包即弃，报告无从记录判据精度
+    失败段落分布：{'1b': 4, '1c': 2}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M7｜`hits.source = source` 改成写死 `"table_list"`（主路径看不出，降级路径暴露）
+    变异位置：副本 scanner.py 第 157 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=None  verify_purge_flow=1
+    必须失败的入口：wiring, flow（实际：wiring=1、flow=1）
+    期望检查 id：['L5-suffix-scan'] → 命中：['L5-suffix-scan']
+    期望失败阶段：P6 → 实际 FAIL_PHASE=P6（一致）
+    失败原因：["✗ [L5] 降级路径（模拟 3.36.0）：`scan()` 返回对象的 `.source` 等于**同一次** `_classify()` 的返回值   type=ScanResult，hits.source='table_list
+    变异语义：证明验证不是『有个 source 字段就算过』，而是逐路径比对真实值
+    失败段落分布：{'1b': 2, '1c': 3}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+  M8｜报告层 `build_report()` 写死 `"table_list"`（不碰 scanner.py）
+    变异位置：副本 purge_flow_checks.py 第 184 行（正式文件未改）
+    入口退出码：verify_wiring=1  probe_v628=1  verify_all=None  verify_purge_flow=1
+    必须失败的入口：wiring, flow（实际：wiring=1、flow=1）
+    期望检查 id：['L5-suffix-report'] → 命中：['L5-suffix-report']
+    期望失败阶段：P6 → 实际 FAIL_PHASE=P6（一致）
+    失败原因：['✗ [L5] 降级路径（模拟 3.36.0）：报告的 `source` 等于实际分类值，且 JSON 往返后仍在   report.source=\'table_list\'，回读=\'table_list\'，json={"sourc
+    变异语义：报告层是最容易『顺手写死』的一层；主路径恰好相等，只有降级路径能抓
+    失败段落分布：{'1b': 1, '1c': 3}（0=环境、1=A 段；这两段全绿说明旧 A 段自己抓不到这个变异）
+    ✓ 被识别并判失败
+
+── 2. 正式文件完整性 ──────────────────────────────────────────────────────
+  D:\WorkBuddy\2026-10-31-13-02-47\tmp\scanner.py
+    SHA-256（结束）：3800b63410f81afe154b0093ab2039d228569f5df1968a10c476fff4d784da29
+    ✓ 前后一致
+  D:\WorkBuddy\2026-10-31-13-02-47\tmp\purge_flow_checks.py
+    SHA-256（结束）：fbc4a6d9401a1fba4e407f1f797746709ffa22a102035968840b40da42a5cdd3
+    ✓ 前后一致
+
+==============================================================================
+总判定：通过（原始全绿；M1–M8 均被识别，判据类命中检查 id、阶段类落在预期阶段）
+==============================================================================

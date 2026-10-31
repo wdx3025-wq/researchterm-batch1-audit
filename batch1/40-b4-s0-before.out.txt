@@ -1,0 +1,113 @@
+==============================================================================
+总体验证入口：C:\Temp\b4_s0_uJATBu
+==============================================================================
+
+✗ verify_doc.py  → exit=1
+      File "C:\Temp\b4_s0_uJATBu\verify_doc.py", line 14, in <module>
+        MD = (ROOT / "docs" / "architecture" / "plan-v6.2-terms.md").read_text(encoding="utf-8")
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 546, in read_text
+        return PathBase.read_text(self, encoding, errors, newline)
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_abc.py", line 632, in read_text
+        with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 537, in open
+        return io.open(self, mode, buffering, encoding, errors, newline)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\plan-v6.2-terms.md'
+
+✗ verify_ch7_sql.py  → exit=1
+      File "C:\Temp\b4_s0_uJATBu\verify_ch7_sql.py", line 19, in <module>
+        DDL = (ROOT / "tmp/ddl_v62.sql").read_text(encoding="utf-8")
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 546, in read_text
+        return PathBase.read_text(self, encoding, errors, newline)
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_abc.py", line 632, in read_text
+        with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 537, in open
+        return io.open(self, mode, buffering, encoding, errors, newline)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\tmp\\ddl_v62.sql'
+
+✗ verify_scanner.py  → exit=1
+      File "C:\Temp\b4_s0_uJATBu\verify_scanner.py", line 31, in <module>
+        MD = (ROOT / "docs" / "architecture" / "plan-v6.2-terms.md").read_text(encoding="utf-8")
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 546, in read_text
+        return PathBase.read_text(self, encoding, errors, newline)
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_abc.py", line 632, in read_text
+        with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 537, in open
+        return io.open(self, mode, buffering, encoding, errors, newline)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\plan-v6.2-terms.md'
+
+✗ verify_scanner.py --mutate → exit=1
+      File "C:\Temp\b4_s0_uJATBu\verify_scanner.py", line 31, in <module>
+        MD = (ROOT / "docs" / "architecture" / "plan-v6.2-terms.md").read_text(encoding="utf-8")
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 546, in read_text
+        return PathBase.read_text(self, encoding, errors, newline)
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_abc.py", line 632, in read_text
+        with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 537, in open
+        return io.open(self, mode, buffering, encoding, errors, newline)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\plan-v6.2-terms.md'
+
+✗ verify_refs.py  → exit=1
+      File "C:\Temp\b4_s0_uJATBu\verify_refs.py", line 84, in <module>
+        text = MD_PATH.read_text(encoding="utf-8")
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 546, in read_text
+        return PathBase.read_text(self, encoding, errors, newline)
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_abc.py", line 632, in read_text
+        with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 537, in open
+        return io.open(self, mode, buffering, encoding, errors, newline)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\plan-v6.2-terms.md'
+
+✗ verify_refs.py --mutate → exit=1
+      File "C:\Temp\b4_s0_uJATBu\verify_refs.py", line 84, in <module>
+        text = MD_PATH.read_text(encoding="utf-8")
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 546, in read_text
+        return PathBase.read_text(self, encoding, errors, newline)
+               ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_abc.py", line 632, in read_text
+        with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+             ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      File "C:\Users\王德兴\.workbuddy\binaries\python\versions\3.13.12\Lib\pathlib\_local.py", line 537, in open
+        return io.open(self, mode, buffering, encoding, errors, newline)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\plan-v6.2-terms.md'
+
+------------------------------------------------------------------------------
+  ✓ exit=0  python probe_v628.py 
+        总判定：全部通过
+  ✓ exit=0  python probe_v627.py 
+        总判定：全部通过
+  ✓ exit=0  python verify_wiring.py 
+        接线检查：27 项，失败 0 项
+  ✓ exit=0  python verify_purge_flow.py 
+        FAIL_PHASE=none
+  — exit=  python mutate_scanner.py 
+        跳过（目录里没有此文件）
+  ✗ exit=1  python verify_doc.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_ch7_sql.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\tmp\\ddl_v62.sql'
+  ✗ exit=1  python verify_scanner.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_scanner.py --mutate
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_refs.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_refs.py --mutate
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+------------------------------------------------------------------------------
+总判定：失败 6 条：['verify_doc.py', 'verify_ch7_sql.py', 'verify_scanner.py', 'verify_scanner.py', 'verify_refs.py', 'verify_refs.py']

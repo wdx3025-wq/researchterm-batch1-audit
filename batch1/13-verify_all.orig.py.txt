@@ -1,0 +1,87 @@
+# -*- coding: utf-8 -*-
+"""单一验证入口：把所有闸门按顺序跑一遍，**任一失败即非零退出**。
+
+为什么需要它：此前的"全绿"是靠人手写 for 循环拼命令得来的，没有单一退出码，
+变异测试也没法用一个数判断"总体验证入口是否失败"。这个脚本只做编排，不含断言。
+
+用法：
+  python tmp/verify_all.py                  # 跑正式树里的全部闸门
+  python tmp/verify_all.py --dir <copy_dir> # 跑指定目录里**存在**的闸门（变异副本用）
+  python tmp/verify_all.py --list           # 只列出会跑哪些命令
+
+退出码：0 = 全部通过；1 = 至少一条失败（并逐条打印 exit 码）。
+"""
+import pathlib
+import subprocess
+import sys
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
+HERE = pathlib.Path(__file__).resolve().parent
+
+# (脚本, 附加参数, 说明)
+CMDS = [
+    ("probe_v628.py", [], "P42 A–G + 1b 接线/版本门 + 1c purge 流程"),
+    ("probe_v627.py", [], "P41 A–G（含降级段）"),
+    ("verify_wiring.py", [], "L1–L5 运行时接线、版本门与 source 链"),
+    ("verify_purge_flow.py", [], "P3-1 三锚 + P3-2 source 端到端（P0–P6）"),
+    ("mutate_scanner.py", [], "M1–M8 代码变异回归"),
+    ("verify_doc.py", [], "DDL 块逐字节 + 对象数"),
+    ("verify_ch7_sql.py", [], "第 7 章 SQL 全部 EXPLAIN"),
+    ("verify_scanner.py", [], "注入唯一性 + 逐字节 + 结构断言"),
+    ("verify_scanner.py", ["--mutate"], "注入校验负例"),
+    ("verify_refs.py", [], "编号唯一性 / 悬空 / 措辞 / F 计数"),
+    ("verify_refs.py", ["--mutate"], "引用校验负例"),
+]
+
+
+def main():
+    args = sys.argv[1:]
+    d = HERE
+    if "--dir" in args:
+        d = pathlib.Path(args[args.index("--dir") + 1]).resolve()
+    if "--list" in args:
+        for s, a, note in CMDS:
+            print(f"  python {s} {' '.join(a)}   # {note}")
+        return 0
+
+    print("=" * 78)
+    print(f"总体验证入口：{d}")
+    print("=" * 78)
+    rows, bad = [], []
+    for script, extra, note in CMDS:
+        if not (d / script).exists():
+            rows.append((script, extra, "跳过（目录里没有此文件）", None))
+            continue
+        p = subprocess.run([sys.executable, script, *extra], cwd=str(d),
+                           capture_output=True, text=True, encoding="utf-8",
+                           errors="replace")
+        out = (p.stdout or "") + (p.stderr or "")
+        last = ""
+        for ln in reversed(out.strip().splitlines()):
+            s = ln.strip()
+            if s and set(s) != {"="} and set(s) != {"-"}:
+                last = s
+                break
+        rows.append((script, extra, last[:88], p.returncode))
+        if p.returncode != 0:
+            bad.append((script, extra, p.returncode))
+            print(f"\n✗ {script} {' '.join(extra)} → exit={p.returncode}")
+            for ln in out.strip().splitlines()[-12:]:
+                print(f"    {ln}")
+
+    print("\n" + "-" * 78)
+    for script, extra, last, rc in rows:
+        tag = "—" if rc is None else ("✓" if rc == 0 else "✗")
+        print(f"  {tag} exit={'' if rc is None else rc}  python {script} {' '.join(extra)}")
+        print(f"        {last}")
+    print("-" * 78)
+    print(f"总判定：{'通过（全部闸门 exit=0）' if not bad else f'失败 {len(bad)} 条：{[b[0] for b in bad]}'}")
+    return 0 if not bad else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,149 @@
+Batch 1 产物索引 —— ResearchTerm v6.2.11
+==============================================================================
+生成时间 : 2026-11-01 01:10:45 +0800
+访问方式 : 每个文件 URL = https://researchterm-plan-v61.app.workbuddy.host/batch1/<文件名>?sharecode=YXOMR45FMN
+注意     : sharecode 参数不可删，缺失返回 HTTP 403
+类型     : 全部 text/plain（本站不返回 charset，UTF-8 原文）
+
+文件名                                     类别          字节  SHA-256
+------------------------------------------------------------------------------
+01-report.txt                           报告       33803  969a33da65b1555371f80f49df60d7e362dfb3f597d70b7b7b5cef5629c6d13b
+10-verify_scanner.py.txt                代码       15724  44177686815cd0c30b63d31f009654f746e48f693324e3556d72fd4f75ac297d
+11-verify_all.py.txt                    代码        5139  f4b711a1dd9516925a53b54809bc8e368b643bbe34b1cf5be5e2599f28aba8b5
+12-verify_scanner.orig.py.txt           代码       10302  e135f60aa1bec46a2ff7a028dec5004777c04db4a00534b77aea8649f580f91b
+13-verify_all.orig.py.txt               代码        3590  fe0054e3e23799dca7166c49b2892c9c8b6190abec2e3952165611455f6f9c86
+20-s0-baseline.txt                      基线        3831  6bff1dbf9381094d81ec66c8193208183ed59c712123dc2134d101555c3b4692
+30-pre-verify_scanner.log.txt           日志        4966  2ab460f6f58ded23d79f106428d7ebf6c03c5e95f9089dd404c432fbd0188ade
+31-pre-verify_all.log.txt               日志        1559  4a46e9a6aa2b9ebca83ec2206d018a2945e868c450fb4483305bd19da9c7490e
+32-post-verify_scanner.log.txt          日志        7185  5feb34a4595e4ec885141bf8eee3239b61ff3f6056c183f6a8361e0dc798c3d5
+33-post-verify_scanner-mutate.log.txt   日志        7217  26420f91bf21255eba8976a96d8bd6c7deb261d2b802f6c9392a66074dc696bc
+34-post-verify_all.log.txt              日志        1516  58126b5d4d75775cc0e023a7ad6f8dabb521b1c9b4803cd6245dde21a5fe1bb7
+35-tb-truth-table.log.txt               日志        1440  38cf37971bf4423306fba42d859417220015911f1a1bc0f455f2ee74b19fde8c
+36-b1-empty-dir.log.txt                 日志        2433  76c48ca3466384e9ba352ceb67c701e78d3ab5a01bc1725782ee6eb230675465
+37-b4-a-tmp-copy.out.txt                日志        8580  69c036d902031720a5f09e37be7ec4d896bc3f75f0a36110b2ba1640e2d8ad92
+38-b4-b-dir-copy.out.txt                日志        8482  716615b4bad993362edbfacd29228df8e9facf21c3cc496a060a09935c11e038
+39-b4-c-full-copy.out.txt               日志        1445  5ec5c621cef1eaa41fb90cf3a6c0d8c3d5b1ddeb251d5d89638c02937e4ec22b
+40-b4-s0-before.out.txt                 日志        8447  26a32819edb692bbe8b1494e875b63ef9c57589753d0b5cc2d43c3e08eac22e2
+41-b4-record.log.txt                    日志        8264  1a80cc62994a647b64656e47001acaa9b7a8694e3f1b0fd612680c245670003c
+42-inject-site.log.txt                  日志        1042  3e2a00aad1d648a30024b8dc4e5cd0557aa7eab00ef3c060d182d590e424fc49
+43-post-mutate.log.txt                  日志       11328  3409f21e2844e673d9385299f54d329064ac62a839ea5c0731c311fc37fcbbd7
+50-diff-verify_scanner.patch.txt        补丁        9177  5d08c4b716834c0eaf4b55349b6c4ff8da04a3133a5fe178eab4b95181b193b0
+51-diff-verify_all.patch.txt            补丁        3306  c4a28f8d33895c90f86b69316feddd50cb678a850dabcf4d8f0a526d90f58021
+------------------------------------------------------------------------------
+
+说明
+------------------------------------------------------------------------------
+01-report.txt
+    源路径: docs/review/batch1-fix-report.md
+    说明  : Batch 1 修复报告全文（A–J，与本地 md 逐字节同源）
+    SHA   : 969a33da65b1555371f80f49df60d7e362dfb3f597d70b7b7b5cef5629c6d13b
+
+10-verify_scanner.py.txt
+    源路径: tmp/verify_scanner.py
+    说明  : T-A 改动后（S1）
+    SHA   : 44177686815cd0c30b63d31f009654f746e48f693324e3556d72fd4f75ac297d
+
+11-verify_all.py.txt
+    源路径: tmp/verify_all.py
+    说明  : T-B 改动后（S1）
+    SHA   : f4b711a1dd9516925a53b54809bc8e368b643bbe34b1cf5be5e2599f28aba8b5
+
+12-verify_scanner.orig.py.txt
+    源路径: tmp/.bak/batch1-20261101-001256/verify_scanner.py
+    说明  : T-A 改动前（S0 备份）
+    SHA   : e135f60aa1bec46a2ff7a028dec5004777c04db4a00534b77aea8649f580f91b
+
+13-verify_all.orig.py.txt
+    源路径: tmp/.bak/batch1-20261101-001256/verify_all.py
+    说明  : T-B 改动前（S0 备份）
+    SHA   : fe0054e3e23799dca7166c49b2892c9c8b6190abec2e3952165611455f6f9c86
+
+20-s0-baseline.txt
+    源路径: tmp/batch1_s0_baseline_20261101-001256.txt
+    说明  : S0 基线记录（含 site/ 26 文件逐行 SHA）
+    SHA   : 6bff1dbf9381094d81ec66c8193208183ed59c712123dc2134d101555c3b4692
+
+30-pre-verify_scanner.log.txt
+    源路径: tmp/batch1_pre_verify_scanner.log
+    说明  : 改动前 verify_scanner 行为基线
+    SHA   : 2ab460f6f58ded23d79f106428d7ebf6c03c5e95f9089dd404c432fbd0188ade
+
+31-pre-verify_all.log.txt
+    源路径: tmp/batch1_pre_verify_all.log
+    说明  : 改动前 verify_all 11 闸门基线
+    SHA   : 4a46e9a6aa2b9ebca83ec2206d018a2945e868c450fb4483305bd19da9c7490e
+
+32-post-verify_scanner.log.txt
+    源路径: tmp/batch1_post_verify_scanner.log
+    说明  : 改动后 verify_scanner（49 ✓ / 0 ✗）
+    SHA   : 5feb34a4595e4ec885141bf8eee3239b61ff3f6056c183f6a8361e0dc798c3d5
+
+33-post-verify_scanner-mutate.log.txt
+    源路径: tmp/batch1_post_verify_scanner_mutate.log
+    说明  : 改动后 --mutate 变异测试
+    SHA   : 26420f91bf21255eba8976a96d8bd6c7deb261d2b802f6c9392a66074dc696bc
+
+34-post-verify_all.log.txt
+    源路径: tmp/batch1_post_verify_all.log
+    说明  : 改动后主回归（11/11 exit=0）
+    SHA   : 58126b5d4d75775cc0e023a7ad6f8dabb521b1c9b4803cd6245dde21a5fe1bb7
+
+35-tb-truth-table.log.txt
+    源路径: tmp/batch1_tb_truth_table_20261101-001256.log
+    说明  : T-B 六例真值表
+    SHA   : 38cf37971bf4423306fba42d859417220015911f1a1bc0f455f2ee74b19fde8c
+
+36-b1-empty-dir.log.txt
+    源路径: tmp/batch1_b1_empty_20261101-001256.log
+    说明  : B1 空临时目录流程测试
+    SHA   : 76c48ca3466384e9ba352ceb67c701e78d3ab5a01bc1725782ee6eb230675465
+
+37-b4-a-tmp-copy.out.txt
+    源路径: tmp/batch1_b4_a_20261101-001256.out
+    说明  : B4-A 字面形式（仅复制 tmp/）
+    SHA   : 69c036d902031720a5f09e37be7ec4d896bc3f75f0a36110b2ba1640e2d8ad92
+
+38-b4-b-dir-copy.out.txt
+    源路径: tmp/batch1_b4_b_20261101-001256.out
+    说明  : B4-B tmp 副本 + --dir
+    SHA   : 716615b4bad993362edbfacd29228df8e9facf21c3cc496a060a09935c11e038
+
+39-b4-c-full-copy.out.txt
+    源路径: tmp/batch1_b4_c_20261101-001256.out
+    说明  : B4-C 整项目副本 + --dir（达标 exit=0）
+    SHA   : 5ec5c621cef1eaa41fb90cf3a6c0d8c3d5b1ddeb251d5d89638c02937e4ec22b
+
+40-b4-s0-before.out.txt
+    源路径: tmp/batch1_b4_s0_20261101-001256.out
+    说明  : B4-S0 改前脚本对照（证明期望值不可达）
+    SHA   : 26a32819edb692bbe8b1494e875b63ef9c57589753d0b5cc2d43c3e08eac22e2
+
+41-b4-record.log.txt
+    源路径: tmp/batch1_b4_20261101-001256.log
+    说明  : B4 七项必录正式记录
+    SHA   : 1a80cc62994a647b64656e47001acaa9b7a8694e3f1b0fd612680c245670003c
+
+42-inject-site.log.txt
+    源路径: tmp/batch1_inject_site_20261101-001256.log
+    说明  : 主流程注入验证（ZERO_HIT / SITE_MISSING）
+    SHA   : 3e2a00aad1d648a30024b8dc4e5cd0557aa7eab00ef3c060d182d590e424fc49
+
+43-post-mutate.log.txt
+    源路径: tmp/batch1_post_mutate.log
+    说明  : mutate_scanner 直跑输出
+    SHA   : 3409f21e2844e673d9385299f54d329064ac62a839ea5c0731c311fc37fcbbd7
+
+50-diff-verify_scanner.patch.txt
+    源路径: tmp/batch1_diff_verify_scanner.patch
+    说明  : unified diff：verify_scanner.py
+    SHA   : 5d08c4b716834c0eaf4b55349b6c4ff8da04a3133a5fe178eab4b95181b193b0
+
+51-diff-verify_all.patch.txt
+    源路径: tmp/batch1_diff_verify_all.patch
+    说明  : unified diff：verify_all.py
+    SHA   : c4a28f8d33895c90f86b69316feddd50cb678a850dabcf4d8f0a526d90f58021
+
+代码文件说明：10/11 为改动后（S1），12/13 为改动前（S0 备份），可用 50/51 的
+unified diff 复核两者差异。报告 §C 记录了逐段改动理由。
+
+本地对应物全部位于工作区 tmp/ 与 docs/review/ 下，本目录只是只读副本。

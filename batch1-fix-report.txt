@@ -1,0 +1,554 @@
+# Batch 1 修复报告 —— `verify_scanner.py` / `verify_all.py` 的 fail-open
+
+- 报告时间：2026-11-01 00:2x +0800（基线时刻 00:13:01）
+- 依据：`docs/review/batch1-impl-checklist.md`（SHA-256 `31025b3b…302f07`，18514 B）+ `docs/review/batch1-fix-plan.md` + 本轮《Batch 1 正式实施指令》
+- 授权范围：**只**修 `tmp/verify_scanner.py`（T-A）与 `tmp/verify_all.py`（T-B）
+- 性质：本报告是对**两个检查器**修复与规定验证的记录，**不构成** P3-1/P3-2 整体验收、不构成 purge / DDL / 站点 / 部署的验收证据
+
+> 硬约束复述：文中所有"通过"只限 T-A / T-B 的修复与规定验证，且每处都带范围限定。不含任何"项目验收通过""purge 验证通过""已部署"含义。
+
+---
+
+## A. 任务范围与实际修改文件
+
+| 项 | 内容 |
+|---|---|
+| 授权批次 | Batch 1（T-A + T-B），不含 Batch 2 / 3 / P3-3 / P3-4 |
+| 允许修改 | `tmp/verify_scanner.py`、`tmp/verify_all.py`（仅此 2 个） |
+| 实际修改 | **只有这 2 个**（见 H 节的 mtime 扫描） |
+| 越界情况 | **无**。未出现"必须改第三个文件"的情形，未触发该项停止条件 |
+| 未执行 | 真实 purge、DDL 执行/修改、数据库迁移、产品扫描器修改、站点重建、站点部署、编码门禁调整 |
+
+改动规模：
+
+| 文件 | 改动前 | 改动后 | 增量 |
+|---|---|---|---|
+| `tmp/verify_scanner.py` | 10302 B / 215 行 | 15724 B / 327 行 | +5422 B；unified diff +130 / −18 行 |
+| `tmp/verify_all.py` | 3590 B / 87 行 | 5139 B / 116 行 | +1549 B；unified diff 67 行（补丁文件 `tmp/batch1_diff_verify_all.patch`，3306 B） |
+
+补丁留档：`tmp/batch1_diff_verify_scanner.patch`（9177 B）、`tmp/batch1_diff_verify_all.patch`（3306 B）。
+
+---
+
+## B. S0 基线及所有保护文件 SHA
+
+### B.1 清单身份（开工第一步）
+
+| 项 | 期望（指令给定） | 实测 | 判定 |
+|---|---|---|---|
+| `docs/review/batch1-impl-checklist.md` SHA-256 | `31025b3b9eeb96d072a4a20fd32a59ee24c9e815b4f7edaf5145e53531302f07` | `31025b3b9eeb96d072a4a20fd32a59ee24c9e815b4f7edaf5145e53531302f07` | 一致 |
+| 字节数 | 18514 | 18514 | 一致 |
+
+清单身份核对**通过**，未触发停止条件 1。
+
+### B.2 保护文件 S0（实测值，构成后续复核基准）
+
+记录文件：`tmp/batch1_s0_baseline_20261101-001256.txt`（3831 B，SHA-256 `6bff1dbf9381094d81ec66c8193208183ed59c712123dc2134d101555c3b4692`，性质：本地一次性临时验证记录）。
+
+| 文件 | 字节 | S0 SHA-256 | 清单登记情况 |
+|---|---|---|---|
+| `tmp/scanner.py` | 8313 | `3800b63410f81afe154b0093ab2039d228569f5df1968a10c476fff4d784da29` | 全值一致 |
+| `tmp/ddl_v62.sql` | 9018 | `0f0e78f610522e5f413b5618c0adcc6eaacf1c1e7847f4d745a1804eee09f8ba` | 全值一致 |
+| `tmp/purge_flow_checks.py` | 29281 | `fbc4a6d9401a1fba4e407f1f797746709ffa22a102035968840b40da42a5cdd3` | 全值一致 |
+| `tmp/wiring_checks.py` | 18070 | `ef81d779688e1d8668e5770a9e3cb7e177fb1f44e3295e5e2b513df8d811d50d` | 清单只有前缀 `ef81d779…`；**本次补齐全值**，前缀匹配 → 身份确认 |
+| `tmp/mutate_scanner.py` | 17147 | `13384b2fd13cf22544fd91f2550494e3327cb03c9ce86c8d561618452db38f1e` | 全值一致 |
+| `tmp/verify_purge_flow.py` | 2902 | `ee82a0562e4a338927f123886679a3050a8e7a8bfb1b9f336a806dfd9b5ed4d2` | 清单原为"实施时实测并记录"；**本次兑现** |
+| `docs/review/P3-fix-report.md` | 20213 | `e7e770b9640d4dcbfb946ac70481016a7fe907a0dbbf1f29b6092654b5c65670` | 全值一致 |
+| `site/` 全量 | 26 文件 / 1,291,567 B | 聚合 `5e0c104a2303008aec053ee41e68e3230d34b9489094145aa69c5d920859c4aa` | 清单原为"实施时实测并记录"；**本次兑现**（26 行逐文件清单在 B.2 记录文件第 4 节） |
+| `docs/review/batch1-impl-checklist.md` | 18514 | `31025b3b…302f07`（见 B.1） | B1-a 修正后的值，本轮未动 |
+
+`site/` 聚合算法（可复现）：`find site -type f | sort | xargs sha256sum | sha256sum`（仓库根、相对路径）。
+
+### B.3 备份
+
+| 项 | 值 |
+|---|---|
+| 备份目录 | `tmp/.bak/batch1-20261101-001256/`（新建，未覆盖历史 `b1a-20261101-000105/`） |
+| `verify_scanner.py` | 10302 B，SHA `e135f60aa1bec46a2ff7a028dec5004777c04db4a00534b77aea8649f580f91b`（= 原件） |
+| `verify_all.py` | 3590 B，SHA `fe0054e3e23799dca7166c49b2892c9c8b6190abec2e3952165611455f6f9c86`（= 原件） |
+
+字节与 SHA 均与原件一致，未触发停止条件 6。
+
+### B.4 改动前的行为基线（用于对照）
+
+| 命令 | 结果 |
+|---|---|
+| `python tmp/verify_scanner.py` | exit 0，34 ✓ / 0 ✗ |
+| `python tmp/verify_all.py` | exit 0，11/11 闸门 exit=0，耗时 52.4 s |
+
+日志：`tmp/batch1_pre_verify_scanner.log`、`tmp/batch1_pre_verify_all.log`。
+
+---
+
+## C. 两个文件的具体代码改动
+
+### C.1 `verify_scanner.py`（T-A）
+
+**（1）新增原因码常量**（`EXPECTED_SCAN_PAGES` 之后）
+
+```python
+REASON_SITE_MISSING = "SITE_MISSING"     # site/ 不存在 —— 构建产物缺失
+REASON_ZERO_HIT     = "ZERO_HIT"         # 目录在，但没有任何页面出现 def scan(
+REASON_DUPLICATE    = "DUPLICATE"        # 某页出现多份 scan()
+REASON_SET_MISMATCH = "SET_MISMATCH"     # 页面集合与 EXPECTED_SCAN_PAGES 不等
+REASON_OK           = "OK"
+```
+
+**（2）新增取数函数**（None 与 {} 严格区分）
+
+```python
+def scan_page_counts(site_dir):
+    p = pathlib.Path(site_dir)
+    if not p.is_dir():
+        return None                      # 构建产物缺失
+    counts = {}
+    for f in sorted(p.glob("*.html")):
+        txt = f.read_text(encoding="utf-8", errors="ignore")
+        n = len(re.findall(r"^def scan\(conn, mark\):", txt, re.M))
+        if n:
+            counts[f.name] = n
+    return counts                        # 空 dict = 产物在但零命中
+```
+
+**（3）新增唯一判定入口**（复用 `html_pages_ok()` 做判定，`dup` 仅用于归因）
+
+```python
+def judge_site_pages(site_dir):
+    counts = scan_page_counts(site_dir)
+    if counts is None:
+        return (False, REASON_SITE_MISSING,
+                f"目录不存在：{site_dir}（先跑 md2html.py 生成 site/）", counts)
+    if not counts:
+        return (False, REASON_ZERO_HIT,
+                f"目录内没有任何页面出现 def scan(（应为 {EXPECTED_SCAN_PAGES}）", counts)
+    # 判定本身复用 html_pages_ok()，不复制一套集合逻辑
+    ok, why = html_pages_ok(counts)
+    if ok:
+        return True, REASON_OK, why, counts
+    # 归因专用：判定结果已由 html_pages_ok() 给出，这里再查一次 dup
+    # 只是为了把"失败"分类到 DUPLICATE / SET_MISMATCH，**不参与判定**。
+    dup = {k: counts[k] for k in sorted(counts) if counts[k] != 1}
+    if dup:
+        return False, REASON_DUPLICATE, f"某页出现多份 scan()：{dup}；{_set_diag(counts)}", counts
+    _, missing, extra = _page_diff(counts)
+    return False, REASON_SET_MISMATCH, f"缺 {missing}，多 {extra}", counts
+```
+
+`_set_diag()` 在集合本身正常时返回 `集合诊断：无差异`，否则 `集合诊断：缺 [...]，多 [...]`；`counts` 恒为完整取数结果。
+
+**（4）主流程改为无条件调用**（删除 `if SITE.is_dir()` 与 `if html_counts:` 两层旁路）
+
+改动前：
+
+```python
+html_counts = {}
+if SITE.is_dir():
+    ...（逐页扫 scan()）
+    print(f"  HTML：含 scan() 定义的页面 {...}")
+else:
+    print("  HTML：site/ 不存在，跳过（先跑 md2html.py）")
+    pages, total_html = [], 0
+...
+if html_counts:                                   # ← 空集合旁路（本次要修的 fail-open）
+    ok_pages, why_pages = html_pages_ok(html_counts)
+    check("HTML 每页至多 1 份 scan()", all(v == 1 for v in html_counts.values()))
+    check("HTML 含 scan() 的页面集合与 EXPECTED_SCAN_PAGES 精确相等", ok_pages)
+```
+
+改动后：
+
+```python
+ok_pages, page_code, why_pages, html_counts = judge_site_pages(SITE)
+print(f"  页面取数：{html_counts if html_counts else '{}'}")
+print(f"  页面集合判定：[{page_code}] {why_pages}")
+...
+# 无条件判定：空集合 / 缺目录都会落到具体原因码上，不再有"集合为空就跳过"的旁路
+check("HTML 有页面被检出（site 存在，且至少一页含 scan()）",
+      page_code not in (REASON_SITE_MISSING, REASON_ZERO_HIT))
+check("HTML 页面集合 = EXPECTED_SCAN_PAGES 且每页恰 1 份", ok_pages)
+```
+
+同时**删除**了 `all(v == 1 for v in {}.values())` 这个空真表达式作为独立检查项（空集合不再可能进入该分支，改由原因码兜住）。
+
+**（5）新增第 4b 节：6 条流程级用例**（`tempfile.mkdtemp()` 造现场，`finally` 中 `shutil.rmtree` 清理，**不动 `site/`**）
+
+```python
+FLOW_CASES = [
+    ("1",  "site 目录不存在",          None,                        False, REASON_SITE_MISSING),
+    ("2",  "存在但零命中",             {"zzz.html": 0},              False, REASON_ZERO_HIT),
+    ("3",  "缺复核分册（ch07+index）", {"ch07.html": 1, "index.html": 1}, False, REASON_SET_MISMATCH),
+    ("4",  "单页 2 份，集合正常",      {"ch07.html": 1, "index.html": 2, "review-scanner.html": 1}, False, REASON_DUPLICATE),
+    ("4b", "单页 2 份 且 集合异常",    {"ch07.html": 1, "index.html": 2, "zzz.html": 1}, False, REASON_DUPLICATE),
+    ("5",  "正确三页",                 {"ch07.html": 1, "index.html": 1, "review-scanner.html": 1}, True, REASON_OK),
+]
+```
+
+每条**同时断言 `ok` 与 `code`**；4 / 4b 另有附加断言（见 D.2）。
+
+**（6）保留未动**
+
+- `html_pages_ok()` 函数体与签名**未改**（仅位置下移，供 `judge_site_pages()` 复用）；
+- 第 4 节 **7 条函数级负例原样保留**（`NEG` 列表 7 项、逐条 `check`）；
+- 第 1/2/5/6 节及其断言未改；CLI 契约未改（未加 `--site`）。
+
+### C.2 `verify_all.py`（T-B）
+
+完整 unified diff（`tmp/batch1_diff_verify_all.patch`）：
+
+```diff
+@@ 文件头 docstring
+-  python tmp/verify_all.py --dir <copy_dir> # 跑指定目录里**存在**的闸门（变异副本用）
++  python tmp/verify_all.py --dir <copy_dir> # 跑指定目录里的闸门（变异副本用）
++前置条件：运行前须先生成 `site/`（`verify_scanner.py` 会校验站点页面集合，缺失即判失败）。
++缺文件策略：除"临时副本里的 mutate_scanner.py"（防递归所需）之外，任何闸门缺失一律判失败；
++根目录的 11 条闸门全部是必需项。判定逻辑见 `missing_verdict()`。
+
+@@ HERE 之后新增
++RELAXABLE_IN_COPY = {"mutate_scanner.py"}
++
++def missing_verdict(script, run_dir, here):
++    is_copy = pathlib.Path(run_dir).resolve() != pathlib.Path(here).resolve()
++    if script not in RELAXABLE_IN_COPY:
++        return False, "必需闸门缺失（不在可跳过白名单内）"
++    if not is_copy:
++        return False, "必需闸门缺失（根目录不许缺 mutate_scanner.py）"
++    return True, f"跳过（临时副本，允许缺失 {script}）"
+
+@@ 主循环
+-            rows.append((script, extra, "跳过（目录里没有此文件）", None))
++            allowed, why = missing_verdict(script, d, HERE)
++            rows.append((script, extra, why, None if allowed else "MISSING"))
++            if not allowed:
++                bad.append((script, extra, "missing"))
++                print(f"\n✗ {script} → 必需闸门缺失（不允许跳过）")
+
+@@ 汇总标记
+-        tag = "—" if rc is None else ("✓" if rc == 0 else "✗")
++        tag = "—" if rc is None else ("!" if rc == "MISSING" else ("✓" if rc == 0 else "✗"))
+```
+
+要点：
+
+- 白名单 `RELAXABLE_IN_COPY` 只有 1 个元素，**未扩大**；
+- 放行条件**同时**要求"在白名单内"且 `run_dir.resolve() != here.resolve()`，不只按文件名放行（E 节用例 1/2 专测这一点）；
+- `CMDS` 顺序、`--dir` 语义、`--list` 行为、输出格式均未变（仅新增一个标记字符 `!`）；
+- docstring 增补了 `site/` 前置条件与缺文件策略两段说明（这是清单 §2.1 要求的一行，实际写成两段）。
+
+---
+
+## D. T-A 测试结果
+
+### D.1 原有 7 条函数级负例（保留并全部通过）
+
+| # | 用例 | 期望 | 实际 | 判定 |
+|---|---|---|---|---|
+| 1 | 缺 `review-scanner.html` | 拒绝 | 拒绝：`缺 ['review-scanner.html']，多 []` | ✓ |
+| 2 | 缺合订本 `index.html` | 拒绝 | 拒绝：`缺 ['index.html']，多 []` | ✓ |
+| 3 | 多出一张陌生页面 | 拒绝 | 拒绝：`多 ['other.html']` | ✓ |
+| 4 | `index.html` 2 份 scan() | 拒绝 | 拒绝：`{'index.html': 2}` | ✓ |
+| 5 | `review-scanner.html` 2 份 scan() | 拒绝 | 拒绝：`{'review-scanner.html': 2}` | ✓ |
+| 6 | 空集合 `{}` | 拒绝 | 拒绝：`缺 [三页]`（不再空真） | ✓ |
+| 7 | 完全正确（三页各 1 份） | 通过 | 通过 | ✓ |
+
+### D.2 新增 6 条流程级用例（全部调用正式入口 `judge_site_pages()`）
+
+实际输出（摘自 `tmp/batch1_post_verify_scanner.log`）：
+
+```
+✓ 用例 1｜site 目录不存在 → ok=False [SITE_MISSING] 目录不存在：C:\Temp\batch1_ta_…\nonexistent（先跑 md2html.py 生成 site/）
+    counts=None（期望 ok=False code=SITE_MISSING）
+✓ 用例 2｜存在但零命中 → ok=False [ZERO_HIT] 目录内没有任何页面出现 def scan(（应为 ['ch07.html', 'index.html', 'review-scanner.html']）
+    counts={}（期望 ok=False code=ZERO_HIT）
+✓ 用例 3｜缺复核分册（ch07+index） → ok=False [SET_MISMATCH] 缺 ['review-scanner.html']，多 []
+    counts={'ch07.html': 1, 'index.html': 1}（期望 ok=False code=SET_MISMATCH）
+✓ 用例 4｜单页 2 份，集合正常 → ok=False [DUPLICATE] 某页出现多份 scan()：{'index.html': 2}；集合诊断：无差异
+    counts={'ch07.html': 1, 'index.html': 2, 'review-scanner.html': 1}（期望 ok=False code=DUPLICATE）
+✓ 用例 4b｜单页 2 份 且 集合异常 → ok=False [DUPLICATE] 某页出现多份 scan()：{'index.html': 2}；集合诊断：缺 ['review-scanner.html']，多 ['zzz.html']
+    counts={'ch07.html': 1, 'index.html': 2, 'zzz.html': 1}（期望 ok=False code=DUPLICATE）
+✓ 用例 5｜正确三页 → ok=True [OK] 集合精确匹配 ['ch07.html', 'index.html', 'review-scanner.html']，每页恰 1 份
+```
+
+| # | 场景 | 期望 ok / code | 实际 ok / code | 附加断言 | 判定 |
+|---|---|---|---|---|---|
+| 1 | site 目录不存在 | False / `SITE_MISSING` | False / `SITE_MISSING` | — | ✓ |
+| 2 | 存在但零命中 | False / `ZERO_HIT` | False / `ZERO_HIT` | — | ✓ |
+| 3 | 缺复核分册 | False / `SET_MISMATCH` | False / `SET_MISMATCH` | — | ✓ |
+| 4 | 单页 2 份，集合正常 | False / `DUPLICATE` | False / `DUPLICATE` | `why` 含「无差异」✓ | ✓ |
+| 4b | 单页 2 份 **且** 集合异常 | False / `DUPLICATE` | False / `DUPLICATE` | `why` 同时含缺页/多页 ✓；`counts` 为完整字典 ✓ | ✓ |
+| 5 | 正确三页 | True / `OK` | True / `OK` | — | ✓ |
+
+用例 4b 是决策 1（`DUPLICATE` 优先于 `SET_MISMATCH`）的直接验收：同时具备重复与集合异常，**报 `DUPLICATE` 但集合诊断未丢**。
+
+### D.3 计数与退出码
+
+| 命令 | exit | ✓ | ✗ |
+|---|---|---|---|
+| `python tmp/verify_scanner.py` | 0 | 49 | 0 |
+| `python tmp/verify_scanner.py --mutate` | 0 | 50 | 0（第 5 节篡改检出 +1 项） |
+
+分节统计（非 `--mutate`）：第 1 节 8 ✓ / 第 2 节 2 ✓ / 第 3 节 7 ✓ / 第 4 节 14 ✓（7 条负例各 2 行）/ 第 4b 节 15 ✓ / 第 5 节 0（未加 `--mutate`，按设计打印"跳过"）/ 第 6 节 3 ✓。
+
+改动前为 34 ✓，改动后 49 ✓：差额 = 第 4b 节新增 15 项断言（6 条用例 + 6 条 check + 3 条附加），第 3 节由 7 项检查合并为 2 项（−5），第 4 节与第 1/2/6 节未变。
+
+日志：`tmp/batch1_post_verify_scanner.log`、`tmp/batch1_post_verify_scanner_mutate.log`。
+
+### D.4 主流程级注入验证（§1.5 补充项，两处，跑完即复原）
+
+目的：证明**主流程**（不是单测）在空集合 / 缺目录时确实失败 —— 这是原 fail-open 的直接现场。
+
+| 注入 | 期望 | 实际 | 判定 |
+|---|---|---|---|
+| `SITE` 指向空临时目录 | exit=1 且 `ZERO_HIT` | exit=1，`[ZERO_HIT] 目录内没有任何页面出现 def scan(` | ✓ |
+| `SITE` 指向不存在路径 | exit=1 且 `SITE_MISSING` | exit=1，`[SITE_MISSING] 目录不存在：…` | ✓ |
+
+复原核验：注入前 SHA-256 `44177686815cd0c30b63d31f009654f746e48f693324e3556d72fd4f75ac297d`，复原后同值，`复原一致：True`。日志：`tmp/batch1_inject_site_20261101-001256.log`。
+
+### D.5 T-A 判定
+
+T-A 修复**通过**（限"两个检查器的 fail-open 修复及其规定验证"范围）：7 条旧负例保留通过、6 条流程用例全通过、主流程无条件调用统一入口、空集合/缺目录均可致失败、正常集合可致通过。
+
+---
+
+## E. T-B 六条真值表结果
+
+直接 `import` 生产模块并调 `missing_verdict()`（不复制判断逻辑）。日志：`tmp/batch1_tb_truth_table_20261101-001256.log`。
+
+| # | script | run_dir | `here` | 期望 allowed | 实际 | 理由 | 判定 |
+|---|---|---|---|---|---|---|---|
+| 1 | `mutate_scanner.py` | 临时副本 `C:\Temp\b1_copy_…` | `D:\…\tmp` | **True** | True | 跳过（临时副本，允许缺失 mutate_scanner.py） | ✓ |
+| 2 | `mutate_scanner.py` | 根目录 `D:\…\tmp` | `D:\…\tmp` | **False** | False | 必需闸门缺失（根目录不许缺 mutate_scanner.py） | ✓ |
+| 3 | `verify_doc.py` | 临时副本 | 根目录 | **False** | False | 必需闸门缺失（不在可跳过白名单内） | ✓ |
+| 4 | `verify_doc.py` | 根目录 | 根目录 | **False** | False | 同上 | ✓ |
+| 5 | `verify_scanner.py` | 临时副本 | 根目录 | **False** | False | 同上 | ✓ |
+| 6 | `probe_v628.py` | 根目录 | 根目录 | **False** | False | 同上 | ✓ |
+
+`RELAXABLE_IN_COPY = ['mutate_scanner.py']`（模块内实测值，单元素）。
+
+用例 1/2 用同一文件名、只差目录，结果相反 → 证明**不是按文件名放行**，而是按 `resolve()` 后的目录关系判定。
+
+### E.2 轻量流程级 B1
+
+`python tmp/verify_all.py --dir <空临时目录>` → **exit=1**，汇总出现 10 条 `! exit=MISSING  … 必需闸门缺失（不在可跳过白名单内）`，`mutate_scanner.py` 一行显示 `— exit=  … 跳过（临时副本，允许缺失 mutate_scanner.py）`，总判定 `失败 10 条`。日志：`tmp/batch1_b1_empty_20261101-001256.log`。
+
+### E.3 行为保留核对
+
+| 项 | 结论 | 证据 |
+|---|---|---|
+| `CMDS` 顺序 | 未变 | diff 中 `CMDS` 无改动；主回归 11 条顺序与改动前一致 |
+| `--dir` 行为 | 未变（只是缺文件时的判定变了） | B1/B4-B/B4-C 均以 `--dir` 驱动 |
+| `--list` 行为 | 未变 | 未触碰该分支 |
+| 原有递归保护 | 保留且加强 | `mutate_scanner.py` 在根目录缺它时不再被静默跳过（用例 2） |
+| 输出格式 | 仅新增 `!` 标记与 `exit=MISSING` 文本，其余不变 | diff 末段 |
+
+### E.4 T-B 判定
+
+T-B 修复**通过**（限本次两个检查器范围）：6/6 真值表、B1 符合预期、白名单未扩大、既有行为未被改变。
+
+---
+
+## F. B4 临时副本端到端测试证据
+
+**性质声明（原样）**：以下为**本地一次性临时验证记录**，不是长期稳定的产品接口，也不是线上运行证据。
+
+日志：`tmp/batch1_b4_20261101-001256.log`（8264 B，SHA-256 `1a80cc62994a647b64656e47001acaa9b7a8694e3f1b0fd612680c245670003c`），内含规定的 7 项（执行时间 / 完整命令 / 执行目录 / 退出码 / 实际跳过项 / 关键输出与 stderr / 当次 `verify_all.py` SHA）。
+
+### F.1 四路实测（同一份 S1 代码）
+
+| 路径 | 构造 | exit | 期望 | 达标 |
+|---|---|---|---|---|
+| **B4-A** | 仅复制 `tmp/` → 删 `mutate_scanner.py` → `cd 副本 && python verify_all.py`（清单 §2.4.3 字面形式） | **1** | 0（§2.4.3） | **未达成** |
+| **B4-B** | 同一 tmp 副本 + 根脚本 `--dir 副本` | **1** | 0（§2.5） | **未达成** |
+| **B4-C** | 整项目副本（`docs/` + `site/` + `tmp/`，删 `mutate_scanner.py`）+ `--dir 副本/tmp` | **0** | 0（§2.5） | **达成** |
+| **B4-S0** | 同 B4-A 构造，但把 `verify_all.py` 换成**改前**版本 | **1** | —（对照） | 对照成立 |
+
+### F.2 未达成原因（已定位，且与本轮改动无关）
+
+B4-A / B4-B 的 11 行汇总里，`probe_v628` / `probe_v627` / `verify_wiring` / `verify_purge_flow` 均 exit=0，而下面 6 条失败：
+
+```
+✗ exit=1  python verify_doc.py        FileNotFoundError: … 'C:\Temp\docs\architecture\p…'
+✗ exit=1  python verify_ch7_sql.py    FileNotFoundError: … 'C:\Temp\tmp\ddl_v62.sql'
+✗ exit=1  python verify_scanner.py    FileNotFoundError: … 'C:\Temp\docs\architecture\p…'
+✗ exit=1  python verify_scanner.py --mutate  同因
+✗ exit=1  python verify_refs.py       FileNotFoundError: … 'C:\Temp\docs\architecture\p…'
+✗ exit=1  python verify_refs.py --mutate     同因
+```
+
+原因：这些闸门按 `__file__` 推导 `ROOT` 并读取 `ROOT/docs/…`、`ROOT/tmp/ddl_v62.sql`；"仅复制 `tmp/`"的副本**天然没有 `docs/` 与 `site/`**，因此必然抛 `FileNotFoundError` → exit=1。
+
+**对照实验（关键）**：把**改前**的 `verify_all.py`（SHA `fe0054e3…6c86`）放进同一构造，结果同样是 **exit=1**，且 6 条失败项完全一致（`tmp/batch1_b4_s0_20261101-001256.out`）。**结论：`exit=0` 这个期望在"仅复制 tmp/"的口径下从来不可达，属清单构造缺陷，与 T-A/T-B 改动无关。**
+
+本轮改动在该构造下的**唯一增量**是 `mutate_scanner.py` 一行：
+
+- B4-S0：`— exit=   跳过（目录里没有此文件）`（旧：静默跳过）
+- B4-A：`! exit=MISSING   必需闸门缺失（根目录不许缺 mutate_scanner.py）`（新：判失败）
+
+方向符合 T-B 目标（根目录缺必需闸门必须失败）。B4-B 中同一行已正确显示 `— 跳过（临时副本，允许缺失 mutate_scanner.py）`。
+
+### F.3 达标路径 B4-C 的完整汇总
+
+```
+  ✓ exit=0  python probe_v628.py            总判定：全部通过
+  ✓ exit=0  python probe_v627.py            总判定：全部通过
+  ✓ exit=0  python verify_wiring.py         接线检查：27 项，失败 0 项
+  ✓ exit=0  python verify_purge_flow.py     FAIL_PHASE=none
+  — exit=   python mutate_scanner.py        跳过（临时副本，允许缺失 mutate_scanner.py）
+  ✓ exit=0  python verify_doc.py            结论： 全部通过
+  ✓ exit=0  python verify_ch7_sql.py        总判定：通过
+  ✓ exit=0  python verify_scanner.py        总判定：通过（单一来源成立，注入唯一）
+  ✓ exit=0  python verify_scanner.py --mutate  总判定：通过（单一来源成立，注入唯一）
+  ✓ exit=0  python verify_refs.py           总判定：通过（编号唯一、无悬空、无旧措辞、F 计数自洽）
+  ✓ exit=0  python verify_refs.py --mutate  同上
+总判定：通过（全部闸门 exit=0）
+```
+
+无递归、无卡死（本次全程 40 s 内返回，无子进程自调用迹象）。
+
+### F.4 B4 判定
+
+- **B4-C 达成**清单 §2.5 的 B4 期望值（exit=0、`mutate_scanner.py` 显示"临时副本，允许缺失"、其余 10 条全绿、无递归）；
+- **B4-A / B4-B 未达成** exit=0，且已用 B4-S0 对照证明**为清单构造缺陷**（非本轮代码缺陷）；
+- 因此 **B4 按字面口径不计为"通过"**，作为待裁定项列入 J。
+
+---
+
+## G. M1–M4 机器检查结果
+
+判据（本轮明确固定，避免"直接数行"的误判）：只统计**两条 `----` 标尺之间**的汇总区，闸门行须匹配 `^  (\S) exit=(.*?)  python (\S+)`；每组还有一行说明，故直接数行会得 22 行而非 11 组。
+
+`M1` = 汇总闸门行数；`M2` = exit 值缺失或非整数（含 `MISSING`）的行数；`M3` = exit≠0 的行数；`M4` = `MISSING` 标记行数。
+
+| 对象 | M1 | M2 | M3 | M4 | `—` | 进程退出码 | 最后一行总判定 |
+|---|---|---|---|---|---|---|---|
+| **主回归 `python tmp/verify_all.py`** | **11** | **0** | **0** | **0** | **0** | **0** | `总判定：通过（全部闸门 exit=0）` |
+| B4-C（整项目副本） | 11 | 1 | 0 | 0 | 1 | 0 | `总判定：通过（全部闸门 exit=0）` |
+| B4-B（tmp 副本 + `--dir`） | 11 | 1 | 6 | 0 | 1 | 1 | `总判定：失败 6 条：[…]` |
+| B4-A（字面形式） | 11 | 1 | 6 | 1 | 0 | 1 | `总判定：失败 7 条：[…]` |
+| B4-S0（改前脚本对照） | 11 | 1 | 6 | 0 | 1 | 1 | `总判定：失败 6 条：[…]` |
+| B1（空临时目录） | 11 | 11 | 0 | 10 | 1 | 1 | `总判定：失败 10 条：[…]` |
+
+主回归满足 §2.5 的"11 条全执行、`—` 标记 0 处"，`M2/M3/M4` 全为 0。
+
+逐行（主回归）：`[(✓,0,probe_v628), (✓,0,probe_v627), (✓,0,verify_wiring), (✓,0,verify_purge_flow), (✓,0,mutate_scanner), (✓,0,verify_doc), (✓,0,verify_ch7_sql), (✓,0,verify_scanner), (✓,0,verify_scanner --mutate), (✓,0,verify_refs), (✓,0,verify_refs --mutate)]`。
+
+说明：副本类（B4-*）的 `M2=1` 来自被合法跳过的那一行的空 exit 值，属预期；`B1` 的 `M2=11` 来自 10 条 `MISSING` + 1 条空 exit，亦属预期。
+
+---
+
+## H. S1 与保护文件复核结果
+
+### H.1 S1（两个授权文件）
+
+| 文件 | S0 | S1 | 变化 |
+|---|---|---|---|
+| `tmp/verify_scanner.py` | `e135f60aa1bec46a2ff7a028dec5004777c04db4a00534b77aea8649f580f91b` / 10302 B | `44177686815cd0c30b63d31f009654f746e48f693324e3556d72fd4f75ac297d` / 15724 B | 变（预期） |
+| `tmp/verify_all.py` | `fe0054e3e23799dca7166c49b2892c9c8b6190abec2e3952165611455f6f9c86` / 3590 B | `f4b711a1dd9516925a53b54809bc8e368b643bbe34b1cf5be5e2599f28aba8b5` / 5139 B | 变（预期） |
+
+### H.2 保护文件复核（S1 后重算，逐项与 S0 比对）
+
+| 文件 | S1 后 SHA-256 | 与 S0 | 结论 |
+|---|---|---|---|
+| `tmp/scanner.py` | `3800b63410f81afe154b0093ab2039d228569f5df1968a10c476fff4d784da29` | 相同 | 未变 ✓ |
+| `tmp/ddl_v62.sql` | `0f0e78f610522e5f413b5618c0adcc6eaacf1c1e7847f4d745a1804eee09f8ba` | 相同 | 未变 ✓ |
+| `tmp/purge_flow_checks.py` | `fbc4a6d9401a1fba4e407f1f797746709ffa22a102035968840b40da42a5cdd3` | 相同 | 未变 ✓ |
+| `tmp/wiring_checks.py` | `ef81d779688e1d8668e5770a9e3cb7e177fb1f44e3295e5e2b513df8d811d50d` | 相同 | 未变 ✓ |
+| `tmp/mutate_scanner.py` | `13384b2fd13cf22544fd91f2550494e3327cb03c9ce86c8d561618452db38f1e` | 相同 | 未变 ✓ |
+| `tmp/verify_purge_flow.py` | `ee82a0562e4a338927f123886679a3050a8e7a8bfb1b9f336a806dfd9b5ed4d2` | 相同 | 未变 ✓ |
+| `docs/review/P3-fix-report.md` | `e7e770b9640d4dcbfb946ac70481016a7fe907a0dbbf1f29b6092654b5c65670` | 相同 | 未变 ✓ |
+| `site/` 全量 | 26 文件 / 1,291,567 B / 聚合 `5e0c104a2303008aec053ee41e68e3230d34b9489094145aa69c5d920859c4aa` | 相同（文件数、总字节、聚合 SHA 三项全同） | 未变 ✓ |
+| `docs/review/batch1-impl-checklist.md` | `31025b3b9eeb96d072a4a20fd32a59ee24c9e815b4f7edaf5145e53531302f07` / 18514 B | 相同 | 保持 B1-a 修正后值 ✓ |
+
+未触发停止条件 3。
+
+### H.3 "没有第三个项目文件被修改"的证据
+
+以 S0 基线文件的 mtime 为基准，扫描全仓库（排除 `.workbuddy/`）：
+
+```
+$ find . -type f -newer tmp/batch1_s0_baseline_20261101-001256.txt -not -path './.workbuddy/*'
+```
+
+命中的**代码文件只有 2 个**：`tmp/verify_all.py`、`tmp/verify_scanner.py`；其余 16 项全部是本轮 `tmp/` 下的日志/补丁（清单见 I 节），以及本报告 `docs/review/batch1-fix-report.md`。备份目录内文件的 mtime 因 `cp -p` 保持原件值，故未出现在该列表中（该目录本身为新建）。
+
+### H.4 一处需披露的临时产物
+
+改动初期我曾执行 `python -m py_compile tmp/verify_scanner.py`，它在 `tmp/` 下生成了 `__pycache__/verify_scanner.cpython-313.pyc`。**该目录已被删除**，此后所有 Python 调用都带 `PYTHONDONTWRITEBYTECODE=1`，未再生成。它是编译缓存、非项目文件，但按"不得产生未授权写入"的口径仍在此披露。
+
+---
+
+## I. 文件变更清单、备份与日志位置
+
+### I.1 新增交付物（唯一一个）
+
+| 文件 | 说明 |
+|---|---|
+| `docs/review/batch1-fix-report.md` | 本报告（指令 §十 允许新增的唯一交付报告文件） |
+
+### I.2 代码变更（仅 2 个）
+
+`tmp/verify_scanner.py`、`tmp/verify_all.py`（详见 C / H.1）。
+
+### I.3 备份
+
+`tmp/.bak/batch1-20261101-001256/verify_scanner.py`（10302 B）、`verify_all.py`（3590 B），SHA 与 S0 一致；未覆盖 `tmp/.bak/b1a-20261101-000105/`。
+
+### I.4 日志与证据（均在 `tmp/`，无其他目录）
+
+| 文件 | 用途 |
+|---|---|
+| `batch1_s0_baseline_20261101-001256.txt` | S0 基线记录（3831 B，SHA `6bff1dbf…b4692`） |
+| `batch1_pre_verify_scanner.log` / `batch1_pre_verify_all.log` | 改动前行为基线（34 ✓ / 11 闸门 exit=0） |
+| `batch1_post_verify_scanner.log` / `batch1_post_verify_scanner_mutate.log` | T-A 结果（49 ✓、50 ✓） |
+| `batch1_post_verify_all.log` | 主回归（11/11 exit=0） |
+| `batch1_post_mutate.log` | `mutate_scanner.py` 直跑明细（M1–M8 全识别） |
+| `batch1_tb_truth_table_20261101-001256.log` | T-B 真值表 6/6 |
+| `batch1_b1_empty_20261101-001256.log` | B1（exit=1） |
+| `batch1_b4_20261101-001256.log` | B4 七项记录（8264 B，SHA `1a80cc62…003c`） |
+| `batch1_b4_a/b/c/s0_20261101-001256.out` | B4 四路原始输出 |
+| `batch1_inject_site_20261101-001256.log` | 主流程两处注入 + 复原核验 |
+| `batch1_diff_verify_scanner.patch` / `batch1_diff_verify_all.patch` | 两份 unified diff |
+
+存档要求（清单 §2.4.3）：`tmp/` 清理前须把日志本体或摘要并入 `docs/review/`；本报告 F/G 节已内嵌 B4 与 M1–M4 的关键摘要，满足该要求。
+
+---
+
+## J. 最终判定、未解决问题与禁止事项确认
+
+### J.1 最终判定
+
+**`BATCH1_PASS`** —— **仅限** `verify_scanner.py` / `verify_all.py` 两个检查器的 fail-open 修复及其规定验证：
+
+| 项 | 结论 |
+|---|---|
+| T-A（`verify_scanner.py` 空集合 / 缺目录绕过） | 修复完成，7 条旧负例 + 6 条流程用例 + 2 处主流程注入全部通过 |
+| T-B（`verify_all.py` 缺 gate 脚本跳过） | 修复完成，真值表 6/6、B1 符合预期、白名单未扩大 |
+| 主回归 | 11/11 闸门 exit=0，`—` 0 处，M1–M4 = 11/0/0/0 |
+| 保护文件 | 9 项（含 `site/`）与 S0 完全一致，仅 2 个授权文件变化 |
+| B4 | **B4-C 达成**（exit=0）；**B4-A/B 未达成**，已证明为清单构造缺陷（S0 对照同因失败），见 J.2 |
+
+### J.2 未解决 / 待裁定事项（不在本批自行处理）
+
+1. **B4 口径冲突（需裁定）**：清单 §2.4.3 说"仅复制 `tmp/`"，§2.5 说"`--dir <副本>`"；前者在 S0 上即不可达（缺 `docs/`、`site/`）。建议二选一：
+   - （a）把 §2.4.3 的构造改为"整项目副本（`docs/` + `site/` + `tmp/`）+ `--dir`" —— 本批 B4-C 已验证可达 exit=0，**不需要改代码**；
+   - （b）保留"仅复制 tmp/"，则把期望值改为 exit=1 并写明失败项恒为 6 条 `FileNotFoundError`。
+   > 若你认定"字面 B4 必须 exit=0"是 PASS 的必要条件，则本批应改判 `BATCH1_INCOMPLETE`，唯一未达成项就是 B4 字面构造；改判同样**不需要改代码**。
+
+2. **清单计数矛盾（本轮按要求未改）**：§1.4 表格为 6 条用例，但第 47 行写"5 条流程级负例"、第 84 行写"5 条流程负例…另加一条 4b"、§1.5 写"用例 1–4b"。本轮按 6 条执行（含用例 5）。
+
+3. **`mutate_scanner.py` 的 `all` 判据已退化（本批新发现，属既有问题）**：其变异副本只复制 `tmp/` 内的文件，缺 `docs/` 与 `site/`，故副本内 `verify_all` 恒为 exit=1；4 条"必须由总入口失败"的用例实际无法区分"变异被抓住"与"环境缺文件"。B4-S0 对照已证明该退化在改动前同样存在。建议 Batch 2 处理（例如副本补齐 `docs/`、`site/` 或用 `--dir` 指向整项目副本）。
+
+4. **真值表未固化为 CLI**：6 例真值表以一次性 `python -` 脚本执行（import 生产模块、直接调 `missing_verdict`），未在 `verify_all.py` 增设 `--truth-table`，以免超出清单 §2 的修改位置授权。建议 Batch 2 将其固化为常规回归入口。
+
+5. **清单 0.1 覆盖面**：`CMDS` 涉及 9 个脚本，0.1 只登记了 3 个（`verify_scanner` / `verify_purge_flow` / `mutate_scanner`）。本轮已额外记录 `wiring_checks`、`verify_purge_flow`、`site/`，但 `probe_v628` / `probe_v627` / `verify_wiring` / `verify_doc` / `verify_ch7_sql` / `verify_refs` 仍无 S0，建议后续补齐（可选兜底指纹：9 脚本 + `wiring_checks` 共 10 个文件的聚合值 `8afe88ceb4eb31ecad41147a8c4acc332887d7056790ec078c8995f5fb65e0b0`，本轮未纳入正式基线）。
+
+### J.3 禁止事项确认
+
+本轮**未**执行：真实数据库 purge、DDL 执行或修改、数据库迁移、产品扫描器（`scanner.py`）修改、站点重建、站点部署、编码门禁调整、Batch 2、Batch 3、P3-3、P3-4，以及任何未明确授权的操作。
+
+### J.4 边界声明
+
+`BATCH1_PASS` 只表示**本次两个检查器的 fail-open 修复及其规定验证通过**。它**不表示**：ResearchTerm 全项目验收通过、P3-1/P3-2 最终验收通过、数据库 purge 已验证、DDL 已验证、线上部署成功、Batch 2 已获授权。
+
+---
+
+**本轮仅实施 Batch 1 指定的两个检查器修复及规定验证。未执行真实数据库清理、DDL、站点重建或部署。未进入 Batch 2 或 Batch 3。现已停止，等待用户复核。**

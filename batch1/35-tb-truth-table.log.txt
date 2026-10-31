@@ -1,0 +1,17 @@
+T-B 真值表（清单 §2.4.1，6 例）
+被测模块      : D:\WorkBuddy\2026-10-31-13-02-47\tmp\verify_all.py
+HERE(根目录)  : D:\WorkBuddy\2026-10-31-13-02-47\tmp
+COPY(临时副本): C:\Temp\b1_copy_ty0bbswx
+RELAXABLE_IN_COPY = ['mutate_scanner.py']
+----------------------------------------------------------------------------------------------------
+#  script              run_dir       预期      实际      通过    理由
+----------------------------------------------------------------------------------------------------
+1  mutate_scanner.py   临时副本          True    True    ✓     跳过（临时副本，允许缺失 mutate_scanner.py）
+2  mutate_scanner.py   根目录           False   False   ✓     必需闸门缺失（根目录不许缺 mutate_scanner.py）
+3  verify_doc.py       临时副本          False   False   ✓     必需闸门缺失（不在可跳过白名单内）
+4  verify_doc.py       根目录           False   False   ✓     必需闸门缺失（不在可跳过白名单内）
+5  verify_scanner.py   临时副本          False   False   ✓     必需闸门缺失（不在可跳过白名单内）
+6  probe_v628.py       根目录           False   False   ✓     必需闸门缺失（不在可跳过白名单内）
+----------------------------------------------------------------------------------------------------
+用例数 6，失败 0
+总判定：通过（6/6）

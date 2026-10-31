@@ -1,0 +1,47 @@
+批量交付索引 —— ResearchTerm Batch 1 审计材料
+==============================================================================
+生成时间 : 2026-11-01 03:34:40 
+访问方式 : https://raw.githubusercontent.com/<你的用户名>/<仓库名>/main/<文件名>     例：https://raw.githubusercontent.com/<你的用户名>/<仓库名>/main/batch1-audit-register-v2.txt
+注意     : 路径区分大小写；子目录要带上（batch1/...）；分支名按实际填 main 或 master
+文件数   : 25 个，合计 217744 字节
+类型     : raw.githubusercontent.com 返回 text/plain; charset=utf-8（UTF-8 原文，不会乱码）
+
+文件名                                     字节  SHA-256
+------------------------------------------------------------------------------
+batch1/00-index.txt                            8434  e00e23c7525ae4882cd3a910583c26288120d2cd483798e8553e072042994266
+batch1/01-report.txt                          33803  969a33da65b1555371f80f49df60d7e362dfb3f597d70b7b7b5cef5629c6d13b
+batch1/10-verify_scanner.py.txt               15724  44177686815cd0c30b63d31f009654f746e48f693324e3556d72fd4f75ac297d
+batch1/11-verify_all.py.txt                    5139  f4b711a1dd9516925a53b54809bc8e368b643bbe34b1cf5be5e2599f28aba8b5
+batch1/12-verify_scanner.orig.py.txt          10302  e135f60aa1bec46a2ff7a028dec5004777c04db4a00534b77aea8649f580f91b
+batch1/13-verify_all.orig.py.txt               3590  fe0054e3e23799dca7166c49b2892c9c8b6190abec2e3952165611455f6f9c86
+batch1/20-s0-baseline.txt                      3831  6bff1dbf9381094d81ec66c8193208183ed59c712123dc2134d101555c3b4692
+batch1/30-pre-verify_scanner.log.txt           4966  2ab460f6f58ded23d79f106428d7ebf6c03c5e95f9089dd404c432fbd0188ade
+batch1/31-pre-verify_all.log.txt               1559  4a46e9a6aa2b9ebca83ec2206d018a2945e868c450fb4483305bd19da9c7490e
+batch1/32-post-verify_scanner.log.txt          7185  5feb34a4595e4ec885141bf8eee3239b61ff3f6056c183f6a8361e0dc798c3d5
+batch1/33-post-verify_scanner-mutate.log.txt     7217  26420f91bf21255eba8976a96d8bd6c7deb261d2b802f6c9392a66074dc696bc
+batch1/34-post-verify_all.log.txt              1516  58126b5d4d75775cc0e023a7ad6f8dabb521b1c9b4803cd6245dde21a5fe1bb7
+batch1/35-tb-truth-table.log.txt               1440  38cf37971bf4423306fba42d859417220015911f1a1bc0f455f2ee74b19fde8c
+batch1/36-b1-empty-dir.log.txt                 2433  76c48ca3466384e9ba352ceb67c701e78d3ab5a01bc1725782ee6eb230675465
+batch1/37-b4-a-tmp-copy.out.txt                8580  69c036d902031720a5f09e37be7ec4d896bc3f75f0a36110b2ba1640e2d8ad92
+batch1/38-b4-b-dir-copy.out.txt                8482  716615b4bad993362edbfacd29228df8e9facf21c3cc496a060a09935c11e038
+batch1/39-b4-c-full-copy.out.txt               1445  5ec5c621cef1eaa41fb90cf3a6c0d8c3d5b1ddeb251d5d89638c02937e4ec22b
+batch1/40-b4-s0-before.out.txt                 8447  26a32819edb692bbe8b1494e875b63ef9c57589753d0b5cc2d43c3e08eac22e2
+batch1/41-b4-record.log.txt                    8264  1a80cc62994a647b64656e47001acaa9b7a8694e3f1b0fd612680c245670003c
+batch1/42-inject-site.log.txt                  1042  3e2a00aad1d648a30024b8dc4e5cd0557aa7eab00ef3c060d182d590e424fc49
+batch1/43-post-mutate.log.txt                 11328  3409f21e2844e673d9385299f54d329064ac62a839ea5c0731c311fc37fcbbd7
+batch1/50-diff-verify_scanner.patch.txt        9177  5d08c4b716834c0eaf4b55349b6c4ff8da04a3133a5fe178eab4b95181b193b0
+batch1/51-diff-verify_all.patch.txt            3306  c4a28f8d33895c90f86b69316feddd50cb678a850dabcf4d8f0a526d90f58021
+batch1-audit-register-v2.txt                  16731  de901014be1db427c74bac659e04f7f1da8a83513ba5487f04cae94b0207ec7f
+batch1-fix-report.txt                         33803  969a33da65b1555371f80f49df60d7e362dfb3f597d70b7b7b5cef5629c6d13b
+------------------------------------------------------------------------------
+
+阅读顺序建议
+------------------------------------------------------------------------------
+1. batch1-audit-register-v2.txt  审计登记稿 v2.1（本次要评审的主文档）
+2. batch1/00-index.txt           23 份证据的索引与逐份说明
+3. batch1-fix-report.txt         Batch 1 修复报告（A–J）
+4. batch1/10..13                 改动后/改动前代码（12、13 为 S0 备份）
+5. batch1/50、51                 两份 unified diff
+6. batch1/30..43                 日志类证据
+
+校验：下载后 SHA-256 与本索引逐位比对，任何一位不同即视为截断或被改。

@@ -1,0 +1,106 @@
+
+======================================================================
+1. scanner.py 的可注入主体
+======================================================================
+  总行数 182 行；可注入主体 169 行
+  主体首行：import re
+    ✓ 主体里有 import re
+    ✓ 主体里有 def scan(
+    ✓ 主体里有 def _q(
+    ✓ 模块 docstring 未被注入
+    ✓ 主体里有类型层判据（types.get != virtual）
+    ✓ 主体里有 PRAGMA table_list 调用
+    ✓ 主体里有版本门（_table_list_usable）
+    ✓ 主体里没有 catch-all 式降级（except sqlite3.OperationalError）
+
+======================================================================
+2. 文档 §7.5.1 代码块 与 scanner.py 逐字节比对
+======================================================================
+  §7.5.1 里含 scan() 定义的代码块数：1（应为 1）
+    ✓ 代码块数量为 1
+  文档块 5527 字符 / 源文件主体 5527 字符
+    ✓ 文档代码 = scanner.py（逐字节）
+
+======================================================================
+3. 注入唯一性：模板 / 中间 Markdown / HTML 各自只有一份可执行代码
+======================================================================
+  模板：独占行占位符 1 处（应为 1）、行内提及 5 处、手写源码 0 处（应为 0）
+  Markdown：def scan( 1 次、def _q( 1 次、未解析独占行占位符 0 处
+  页面取数：{'ch07.html': 1, 'index.html': 1, 'review-scanner.html': 1}
+  页面集合判定：[OK] 集合精确匹配 ['ch07.html', 'index.html', 'review-scanner.html']，每页恰 1 份
+    ✓ 模板里独占行占位符恰好 1 处
+    ✓ 模板里没有手写源码（只认占位符）
+    ✓ Markdown 里 def scan( 恰好 1 次
+    ✓ Markdown 里 def _q( 恰好 1 次
+    ✓ Markdown 里没有未解析的独占行占位符
+    ✓ HTML 有页面被检出（site 存在，且至少一页含 scan()）
+    ✓ HTML 页面集合 = EXPECTED_SCAN_PAGES 且每页恰 1 份
+
+======================================================================
+4. 负例验证：判定函数能拒绝错误集合（检错能力不依赖目录恰好正确）
+======================================================================
+    ✓ 缺 review-scanner.html（回到两张视图）
+        → 拒绝（期望拒绝）页面集合不符：缺 ['review-scanner.html']，多 []，实际 ['ch07.html', 'index.html']
+    ✓ 负例：缺 review-scanner.html（回到两张视图）
+    ✓ 缺合订本 index.html
+        → 拒绝（期望拒绝）页面集合不符：缺 ['index.html']，多 []，实际 ['ch07.html', 'review-scanner.html']
+    ✓ 负例：缺合订本 index.html
+    ✓ 多出一张陌生页面
+        → 拒绝（期望拒绝）页面集合不符：缺 []，多 ['other.html']，实际 ['ch07.html', 'index.html', 'other.html', 'review-scanner.html']
+    ✓ 负例：多出一张陌生页面
+    ✓ index.html 出现 2 份 scan()（合订本被注入两次）
+        → 拒绝（期望拒绝）单页出现多份 scan()：{'index.html': 2}
+    ✓ 负例：index.html 出现 2 份 scan()（合订本被注入两次）
+    ✓ review-scanner.html 出现 2 份 scan()
+        → 拒绝（期望拒绝）单页出现多份 scan()：{'review-scanner.html': 2}
+    ✓ 负例：review-scanner.html 出现 2 份 scan()
+    ✓ 空集合（site/ 里一份都没有）
+        → 拒绝（期望拒绝）页面集合不符：缺 ['ch07.html', 'index.html', 'review-scanner.html']，多 []，实际 []
+    ✓ 负例：空集合（site/ 里一份都没有）
+    ✓ 完全正确（三页各 1 份）
+        → 通过（期望通过）集合精确匹配 ['ch07.html', 'index.html', 'review-scanner.html']，每页恰 1 份
+    ✓ 负例：完全正确（三页各 1 份）
+
+======================================================================
+4b. 流程级用例：judge_site_pages() 逐条断原因码（6 条，临时目录）
+======================================================================
+    ✓ 用例 1｜site 目录不存在 → ok=False [SITE_MISSING] 目录不存在：C:\Temp\batch1_ta_9pbo_sr8\nonexistent（先跑 md2html.py 生成 site/）
+        counts=None（期望 ok=False code=SITE_MISSING）
+    ✓ 流程用例 1：ok=False 且 code=SITE_MISSING
+    ✓ 用例 2｜存在但零命中 → ok=False [ZERO_HIT] 目录内没有任何页面出现 def scan(（应为 ['ch07.html', 'index.html', 'review-scanner.html']）
+        counts={}（期望 ok=False code=ZERO_HIT）
+    ✓ 流程用例 2：ok=False 且 code=ZERO_HIT
+    ✓ 用例 3｜缺复核分册（ch07+index） → ok=False [SET_MISMATCH] 缺 ['review-scanner.html']，多 []
+        counts={'ch07.html': 1, 'index.html': 1}（期望 ok=False code=SET_MISMATCH）
+    ✓ 流程用例 3：ok=False 且 code=SET_MISMATCH
+    ✓ 用例 4｜单页 2 份，集合正常 → ok=False [DUPLICATE] 某页出现多份 scan()：{'index.html': 2}；集合诊断：无差异
+        counts={'ch07.html': 1, 'index.html': 2, 'review-scanner.html': 1}（期望 ok=False code=DUPLICATE）
+    ✓ 流程用例 4：ok=False 且 code=DUPLICATE
+    ✓ 流程用例 4：集合正常时 why 明说「无差异」
+    ✓ 用例 4b｜单页 2 份 且 集合异常 → ok=False [DUPLICATE] 某页出现多份 scan()：{'index.html': 2}；集合诊断：缺 ['review-scanner.html']，多 ['zzz.html']
+        counts={'ch07.html': 1, 'index.html': 2, 'zzz.html': 1}（期望 ok=False code=DUPLICATE）
+    ✓ 流程用例 4b：ok=False 且 code=DUPLICATE
+    ✓ 流程用例 4b：why 同时含缺页与多页字样
+    ✓ 流程用例 4b：counts 为完整字典（未被短路截断）
+    ✓ 用例 5｜正确三页 → ok=True [OK] 集合精确匹配 ['ch07.html', 'index.html', 'review-scanner.html']，每页恰 1 份
+        counts={'ch07.html': 1, 'index.html': 1, 'review-scanner.html': 1}（期望 ok=True code=OK）
+    ✓ 流程用例 5：ok=True 且 code=OK
+
+======================================================================
+5. 负例验证：篡改文档正文，检查器必须能发现
+======================================================================
+  （跳过：加 --mutate 运行此负例）
+
+======================================================================
+6. P39 对照实验：旧「全局替换」会造出多份，新「独占行替换」只造一份
+======================================================================
+  旧规则（全局 re.sub）：产出 6 份 def scan( —— 这就是 v6.2.5 线上那份的来历
+  新规则（只认独占行）：产出 1 份
+    ✓ 旧规则确实会产出多份（bug 可复现）
+    ✓ 新规则只产出 1 份
+  人为把代码块再复制一份后，§7.5.1 里可解析出 scan() 的块数 = 2
+    ✓ 重复代码块能被检出（应数为 2）
+
+======================================================================
+总判定：通过（单一来源成立，注入唯一）
+======================================================================

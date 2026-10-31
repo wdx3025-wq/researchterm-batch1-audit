@@ -1,0 +1,14 @@
+注入前 SHA-256 = 44177686815cd0c30b63d31f009654f746e48f693324e3556d72fd4f75ac297d
+空目录 = C:\Temp\b1_inject_empty_z6h4d12c
+不存在路径 = C:\Temp\b1_inject_empty_z6h4d12c\does_not_exist
+------------------------------------------------------------------------------------------
+✓ 空临时目录（site 存在但零命中）
+    期望 exit=1 且 ZERO_HIT；实际 exit=1
+    页面集合判定：[ZERO_HIT] 目录内没有任何页面出现 def scan(（应为 ['ch07.html', 'index.html', 'review-scanner.html']）
+✓ 不存在的路径（site 缺失）
+    期望 exit=1 且 SITE_MISSING；实际 exit=1
+    页面集合判定：[SITE_MISSING] 目录不存在：C:\Temp\b1_inject_empty_z6h4d12c\does_not_exist（先跑 md2html.py 生成 site/）
+------------------------------------------------------------------------------------------
+复原后 SHA-256 = 44177686815cd0c30b63d31f009654f746e48f693324e3556d72fd4f75ac297d
+复原一致：True
+总判定：通过（两处注入均使主流程失败，且已复原）

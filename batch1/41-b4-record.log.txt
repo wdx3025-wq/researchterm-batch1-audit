@@ -1,0 +1,132 @@
+# Batch 1 · B4 临时副本端到端验证记录
+# 性质：本地一次性临时验证记录，非长期产品接口、非线上运行证据
+
+## 1. 执行时间
+记录生成：2026-11-01 00:24:20 +0800
+四路执行完成于 2026-11-01 00:20–00:23 +0800（同一轮，同一份 S1 代码）
+
+## 2. 完整执行命令
+B4-A（清单 §2.4.3 字面形式，仅复制 tmp/）：
+  cd C:/Temp/b4_copy_7SVUxh && python verify_all.py
+B4-B（tmp/ 副本 + 根脚本 --dir）：
+  python tmp/verify_all.py --dir C:/Temp/b4_copy_7SVUxh
+B4-C（整项目副本 + --dir，副本内缺 mutate_scanner.py）：
+  python tmp/verify_all.py --dir C:/Temp/b4full_TZPjZT/tmp
+B4-S0（对照：把改前的 verify_all.py 放进 tmp/ 副本，检验期望值在 S0 是否可达）：
+  cd C:/Temp/b4_s0_uJATBu && python verify_all.py
+
+## 3. 执行目录
+根仓库    : D:/WorkBuddy/2026-10-31-13-02-47
+B4-A cwd  : C:/Temp/b4_copy_7SVUxh
+B4-B cwd  : D:/WorkBuddy/2026-10-31-13-02-47（--dir 指向 C:/Temp/b4_copy_7SVUxh）
+B4-C cwd  : D:/WorkBuddy/2026-10-31-13-02-47（--dir 指向 C:/Temp/b4full_TZPjZT/tmp）
+B4-S0 cwd : C:/Temp/b4_s0_uJATBu
+
+## 4. 退出码
+B4-A = 1  未达成清单期望的 0；原因见第 8 节（副本缺 docs/，与 T-A/T-B 无关）
+B4-B = 1  同上；但 mutate_scanner.py 那一行已正确显示「跳过（临时副本，允许缺失）」
+B4-C = 0  达成清单 §2.5 的 B4 期望值
+B4-S0 = 1 改前脚本在同样构造下同样为 1 —— 证明「exit=0」在「仅复制 tmp/」口径下不可达
+
+## 5. 实际跳过项
+B4-A：mutate_scanner.py 未跳过，判为 MISSING（必需闸门缺失（根目录不许缺 mutate_scanner.py））；其余 6 项是失败而非跳过
+B4-B：跳过 1 项 —— mutate_scanner.py，理由「跳过（临时副本，允许缺失 mutate_scanner.py）」，汇总标记 —
+B4-C：跳过 1 项 —— mutate_scanner.py，理由「跳过（临时副本，允许缺失 mutate_scanner.py）」，汇总标记 —；其余 10 条全部执行且 exit=0
+B4-S0：跳过 1 项 —— mutate_scanner.py，理由「跳过（目录里没有此文件）」（改前旧文案）
+
+## 6. 关键输出与错误输出
+### B4-C（达标路径）汇总区，全文见 tmp/batch1_b4_c_20261101-001256.out
+------------------------------------------------------------------------------
+  ✓ exit=0  python probe_v628.py 
+        总判定：全部通过
+  ✓ exit=0  python probe_v627.py 
+        总判定：全部通过
+  ✓ exit=0  python verify_wiring.py 
+        接线检查：27 项，失败 0 项
+  ✓ exit=0  python verify_purge_flow.py 
+        FAIL_PHASE=none
+  — exit=  python mutate_scanner.py 
+        跳过（临时副本，允许缺失 mutate_scanner.py）
+  ✓ exit=0  python verify_doc.py 
+        结论： 全部通过
+  ✓ exit=0  python verify_ch7_sql.py 
+        总判定：通过
+  ✓ exit=0  python verify_scanner.py 
+        总判定：通过（单一来源成立，注入唯一）
+  ✓ exit=0  python verify_scanner.py --mutate
+        总判定：通过（单一来源成立，注入唯一）
+  ✓ exit=0  python verify_refs.py 
+        总判定：通过（编号唯一、无悬空、无旧措辞、F 计数自洽）
+  ✓ exit=0  python verify_refs.py --mutate
+        总判定：通过（编号唯一、无悬空、无旧措辞、F 计数自洽）
+------------------------------------------------------------------------------
+总判定：通过（全部闸门 exit=0）
+### B4-A（字面形式）汇总区，全文见 tmp/batch1_b4_a_20261101-001256.out
+------------------------------------------------------------------------------
+  ✓ exit=0  python probe_v628.py 
+        总判定：全部通过
+  ✓ exit=0  python probe_v627.py 
+        总判定：全部通过
+  ✓ exit=0  python verify_wiring.py 
+        接线检查：27 项，失败 0 项
+  ✓ exit=0  python verify_purge_flow.py 
+        FAIL_PHASE=none
+  ! exit=MISSING  python mutate_scanner.py 
+        必需闸门缺失（根目录不许缺 mutate_scanner.py）
+  ✗ exit=1  python verify_doc.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_ch7_sql.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\tmp\\ddl_v62.sql'
+  ✗ exit=1  python verify_scanner.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_scanner.py --mutate
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_refs.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_refs.py --mutate
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+------------------------------------------------------------------------------
+总判定：失败 7 条：['mutate_scanner.py', 'verify_doc.py', 'verify_ch7_sql.py', 'verify_scanner.py', 'verify_scanner.py', 'verify_refs.py', 'verify_refs.py']
+### B4-S0（改前脚本对照）汇总区，全文见 tmp/batch1_b4_s0_20261101-001256.out
+------------------------------------------------------------------------------
+  ✓ exit=0  python probe_v628.py 
+        总判定：全部通过
+  ✓ exit=0  python probe_v627.py 
+        总判定：全部通过
+  ✓ exit=0  python verify_wiring.py 
+        接线检查：27 项，失败 0 项
+  ✓ exit=0  python verify_purge_flow.py 
+        FAIL_PHASE=none
+  — exit=  python mutate_scanner.py 
+        跳过（目录里没有此文件）
+  ✗ exit=1  python verify_doc.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_ch7_sql.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\tmp\\ddl_v62.sql'
+  ✗ exit=1  python verify_scanner.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_scanner.py --mutate
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_refs.py 
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+  ✗ exit=1  python verify_refs.py --mutate
+        FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Temp\\docs\\architecture\\p
+------------------------------------------------------------------------------
+总判定：失败 6 条：['verify_doc.py', 'verify_ch7_sql.py', 'verify_scanner.py', 'verify_scanner.py', 'verify_refs.py', 'verify_refs.py']
+### stderr
+四路 stderr 均为空（0 行）。B4-A/B/S0 的失败原因出现在各闸门被捕获的输出里（汇总说明行）。
+
+## 7. 当次 verify_all.py 的 SHA-256
+正式树 tmp/verify_all.py     : f4b711a1dd9516925a53b54809bc8e368b643bbe34b1cf5be5e2599f28aba8b5  (5139 字节)
+B4-C 副本内 verify_all.py    : f4b711a1dd9516925a53b54809bc8e368b643bbe34b1cf5be5e2599f28aba8b5（与正式树一致）
+B4-S0 对照用 verify_all.py   : fe0054e3e23799dca7166c49b2892c9c8b6190abec2e3952165611455f6f9c86（改前 S0 值）
+
+## 8. 期望值可达性结论
+清单 §2.4.3 的构造是「仅把 tmp/ 复制到临时目录」。该副本没有 docs/ 与 site/，
+而 verify_doc / verify_ch7_sql / verify_scanner / verify_refs 都按 __file__ 推导 ROOT 并读取 ROOT/docs/…，
+所以在「仅复制 tmp/」的副本里必然抛 FileNotFoundError → exit=1。
+B4-S0 用改前（S0）的 verify_all.py 在同一构造下实测同样 exit=1，6 条失败项完全一致，
+说明「exit=0」这个期望在「仅复制 tmp/」口径下从来不可达，与本轮 T-A/T-B 改动无关。
+本轮改动在该构造下的唯一增量是 mutate_scanner.py 一行：— 跳过 → ! MISSING（方向符合 T-B 目标）。
+B4-C 改用「整项目副本（docs + site + tmp，缺 mutate_scanner.py）+ --dir」，
+既满足 §2.5 表中「--dir <副本，只缺 mutate_scanner.py> → 0」的期望，也验证防递归白名单在真实副本中生效。

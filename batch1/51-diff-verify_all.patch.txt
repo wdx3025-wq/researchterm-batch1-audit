@@ -1,0 +1,67 @@
+--- tmp/.bak/batch1-20261101-001256/verify_all.py	2026-10-31 20:49:05.425388400 +0800
++++ tmp/verify_all.py	2026-11-01 00:15:38.898643400 +0800
+@@ -6,9 +6,14 @@
+ 
+ 用法：
+   python tmp/verify_all.py                  # 跑正式树里的全部闸门
+-  python tmp/verify_all.py --dir <copy_dir> # 跑指定目录里**存在**的闸门（变异副本用）
++  python tmp/verify_all.py --dir <copy_dir> # 跑指定目录里的闸门（变异副本用）
+   python tmp/verify_all.py --list           # 只列出会跑哪些命令
+ 
++前置条件：运行前须先生成 `site/`（`verify_scanner.py` 会校验站点页面集合，缺失即判失败）。
++
++缺文件策略：除"临时副本里的 mutate_scanner.py"（防递归所需）之外，任何闸门缺失一律判失败；
++根目录的 11 条闸门全部是必需项。判定逻辑见 `missing_verdict()`。
++
+ 退出码：0 = 全部通过；1 = 至少一条失败（并逐条打印 exit 码）。
+ """
+ import pathlib
+@@ -22,6 +27,26 @@
+ 
+ HERE = pathlib.Path(__file__).resolve().parent
+ 
++# 唯一允许缺失的闸门，且**只在临时副本内**允许（防递归所需）。
++# 根目录缺它同样判失败：根目录 11 条闸门都是必需项。
++RELAXABLE_IN_COPY = {"mutate_scanner.py"}
++
++
++def missing_verdict(script, run_dir, here):
++    """缺文件时的判定，纯函数，返回 (allowed: bool, reason: str)。
++
++    允许跳过的条件必须**同时**满足：
++      1) script ∈ RELAXABLE_IN_COPY；
++      2) run_dir.resolve() != here.resolve()（确实是副本）。
++    其余一律 False —— 包括根目录缺 mutate_scanner.py。
++    """
++    is_copy = pathlib.Path(run_dir).resolve() != pathlib.Path(here).resolve()
++    if script not in RELAXABLE_IN_COPY:
++        return False, "必需闸门缺失（不在可跳过白名单内）"
++    if not is_copy:
++        return False, "必需闸门缺失（根目录不许缺 mutate_scanner.py）"
++    return True, f"跳过（临时副本，允许缺失 {script}）"
++
+ # (脚本, 附加参数, 说明)
+ CMDS = [
+     ("probe_v628.py", [], "P42 A–G + 1b 接线/版本门 + 1c purge 流程"),
+@@ -54,7 +79,11 @@
+     rows, bad = [], []
+     for script, extra, note in CMDS:
+         if not (d / script).exists():
+-            rows.append((script, extra, "跳过（目录里没有此文件）", None))
++            allowed, why = missing_verdict(script, d, HERE)
++            rows.append((script, extra, why, None if allowed else "MISSING"))
++            if not allowed:
++                bad.append((script, extra, "missing"))
++                print(f"\n✗ {script} → 必需闸门缺失（不允许跳过）")
+             continue
+         p = subprocess.run([sys.executable, script, *extra], cwd=str(d),
+                            capture_output=True, text=True, encoding="utf-8",
+@@ -75,7 +104,7 @@
+ 
+     print("\n" + "-" * 78)
+     for script, extra, last, rc in rows:
+-        tag = "—" if rc is None else ("✓" if rc == 0 else "✗")
++        tag = "—" if rc is None else ("!" if rc == "MISSING" else ("✓" if rc == 0 else "✗"))
+         print(f"  {tag} exit={'' if rc is None else rc}  python {script} {' '.join(extra)}")
+         print(f"        {last}")
+     print("-" * 78)

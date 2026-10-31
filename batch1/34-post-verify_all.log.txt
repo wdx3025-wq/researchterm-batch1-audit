@@ -1,0 +1,29 @@
+==============================================================================
+总体验证入口：D:\WorkBuddy\2026-10-31-13-02-47\tmp
+==============================================================================
+
+------------------------------------------------------------------------------
+  ✓ exit=0  python probe_v628.py 
+        总判定：全部通过
+  ✓ exit=0  python probe_v627.py 
+        总判定：全部通过
+  ✓ exit=0  python verify_wiring.py 
+        接线检查：27 项，失败 0 项
+  ✓ exit=0  python verify_purge_flow.py 
+        FAIL_PHASE=none
+  ✓ exit=0  python mutate_scanner.py 
+        总判定：通过（原始全绿；M1–M8 均被识别，判据类命中检查 id、阶段类落在预期阶段）
+  ✓ exit=0  python verify_doc.py 
+        结论： 全部通过
+  ✓ exit=0  python verify_ch7_sql.py 
+        总判定：通过
+  ✓ exit=0  python verify_scanner.py 
+        总判定：通过（单一来源成立，注入唯一）
+  ✓ exit=0  python verify_scanner.py --mutate
+        总判定：通过（单一来源成立，注入唯一）
+  ✓ exit=0  python verify_refs.py 
+        总判定：通过（编号唯一、无悬空、无旧措辞、F 计数自洽）
+  ✓ exit=0  python verify_refs.py --mutate
+        总判定：通过（编号唯一、无悬空、无旧措辞、F 计数自洽）
+------------------------------------------------------------------------------
+总判定：通过（全部闸门 exit=0）

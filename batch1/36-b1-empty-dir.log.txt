@@ -1,0 +1,49 @@
+==============================================================================
+总体验证入口：C:\Temp\b1_empty_EOgI1f
+==============================================================================
+
+✗ probe_v628.py → 必需闸门缺失（不允许跳过）
+
+✗ probe_v627.py → 必需闸门缺失（不允许跳过）
+
+✗ verify_wiring.py → 必需闸门缺失（不允许跳过）
+
+✗ verify_purge_flow.py → 必需闸门缺失（不允许跳过）
+
+✗ verify_doc.py → 必需闸门缺失（不允许跳过）
+
+✗ verify_ch7_sql.py → 必需闸门缺失（不允许跳过）
+
+✗ verify_scanner.py → 必需闸门缺失（不允许跳过）
+
+✗ verify_scanner.py → 必需闸门缺失（不允许跳过）
+
+✗ verify_refs.py → 必需闸门缺失（不允许跳过）
+
+✗ verify_refs.py → 必需闸门缺失（不允许跳过）
+
+------------------------------------------------------------------------------
+  ! exit=MISSING  python probe_v628.py 
+        必需闸门缺失（不在可跳过白名单内）
+  ! exit=MISSING  python probe_v627.py 
+        必需闸门缺失（不在可跳过白名单内）
+  ! exit=MISSING  python verify_wiring.py 
+        必需闸门缺失（不在可跳过白名单内）
+  ! exit=MISSING  python verify_purge_flow.py 
+        必需闸门缺失（不在可跳过白名单内）
+  — exit=  python mutate_scanner.py 
+        跳过（临时副本，允许缺失 mutate_scanner.py）
+  ! exit=MISSING  python verify_doc.py 
+        必需闸门缺失（不在可跳过白名单内）
+  ! exit=MISSING  python verify_ch7_sql.py 
+        必需闸门缺失（不在可跳过白名单内）
+  ! exit=MISSING  python verify_scanner.py 
+        必需闸门缺失（不在可跳过白名单内）
+  ! exit=MISSING  python verify_scanner.py --mutate
+        必需闸门缺失（不在可跳过白名单内）
+  ! exit=MISSING  python verify_refs.py 
+        必需闸门缺失（不在可跳过白名单内）
+  ! exit=MISSING  python verify_refs.py --mutate
+        必需闸门缺失（不在可跳过白名单内）
+------------------------------------------------------------------------------
+总判定：失败 10 条：['probe_v628.py', 'probe_v627.py', 'verify_wiring.py', 'verify_purge_flow.py', 'verify_doc.py', 'verify_ch7_sql.py', 'verify_scanner.py', 'verify_scanner.py', 'verify_refs.py', 'verify_refs.py']
