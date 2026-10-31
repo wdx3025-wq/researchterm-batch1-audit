@@ -1,0 +1,65 @@
+ResearchTerm Batch 1 审计材料 —— GitHub 文件链接清单
+==============================================================================
+用法：把链接直接发给 ChatGPT；它读 github.com 的 blob 页面（text/html），
+      不要发 raw.githubusercontent.com（该形态实测被拒）。
+
+[ 主文档 —— 优先给这三条 ]
+
+  batch1-audit-register-v2.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1-audit-register-v2.txt
+  INDEX.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/INDEX.txt
+  batch1-fix-report.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1-fix-report.txt
+
+[ 证据 batch1/ —— 23 份 ]
+
+  batch1/00-index.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/00-index.txt
+  batch1/01-report.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/01-report.txt
+  batch1/10-verify_scanner.py.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/10-verify_scanner.py.txt
+  batch1/11-verify_all.py.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/11-verify_all.py.txt
+  batch1/12-verify_scanner.orig.py.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/12-verify_scanner.orig.py.txt
+  batch1/13-verify_all.orig.py.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/13-verify_all.orig.py.txt
+  batch1/20-s0-baseline.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/20-s0-baseline.txt
+  batch1/30-pre-verify_scanner.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/30-pre-verify_scanner.log.txt
+  batch1/31-pre-verify_all.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/31-pre-verify_all.log.txt
+  batch1/32-post-verify_scanner.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/32-post-verify_scanner.log.txt
+  batch1/33-post-verify_scanner-mutate.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/33-post-verify_scanner-mutate.log.txt
+  batch1/34-post-verify_all.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/34-post-verify_all.log.txt
+  batch1/35-tb-truth-table.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/35-tb-truth-table.log.txt
+  batch1/36-b1-empty-dir.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/36-b1-empty-dir.log.txt
+  batch1/37-b4-a-tmp-copy.out.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/37-b4-a-tmp-copy.out.txt
+  batch1/38-b4-b-dir-copy.out.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/38-b4-b-dir-copy.out.txt
+  batch1/39-b4-c-full-copy.out.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/39-b4-c-full-copy.out.txt
+  batch1/40-b4-s0-before.out.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/40-b4-s0-before.out.txt
+  batch1/41-b4-record.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/41-b4-record.log.txt
+  batch1/42-inject-site.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/42-inject-site.log.txt
+  batch1/43-post-mutate.log.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/43-post-mutate.log.txt
+  batch1/50-diff-verify_scanner.patch.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/50-diff-verify_scanner.patch.txt
+  batch1/51-diff-verify_all.patch.txt
+      https://github.com/wdx3025-wq/researchterm-batch1-audit/blob/main/batch1/51-diff-verify_all.patch.txt
+
+==============================================================================
+阅读顺序：主文档 → INDEX.txt（逐文件字节/SHA）→ batch1-fix-report.txt → 证据
