@@ -1,0 +1,4 @@
+RESEARCHTERM_GPT_READ_TEST
+测试编号：RT-READ-002
+内容：ChatGPT 应当能够读取这一行。
+用途：验证外部文件读取兼容性。
